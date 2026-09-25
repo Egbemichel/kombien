@@ -30,7 +30,7 @@ flutter
 mobile-app
 ```
 
-Some of these (e.g. `flutter`, `mobile-app`) assume a tech stack that hasn't been chosen yet — add them once true, not in anticipation.
+`flutter` and `mobile-app` are now accurate — the app at [`../../app/`](../../app/) is a Flutter project. Add the rest once true, not in anticipation.
 
 ## 4. Branch strategy
 

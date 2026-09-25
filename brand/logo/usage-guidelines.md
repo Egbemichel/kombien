@@ -1,6 +1,6 @@
 # Logo Usage Guidelines
 
-**Status: direction approved (see [README.md](README.md)), artwork not yet produced.** No logo file has been designed yet. This document defines the *sections* these guidelines will cover once real artwork exists, so contributors know what's coming and what not to assume in the meantime.
+**Status: first exports in place (see [README.md](README.md#current-exports)).** The sections below are still placeholders — they need to be written by looking at the actual artwork (clear space, minimum size, incorrect usage, etc.), not filled in ahead of time.
 
 ## Sections to be completed once a logo is approved
 

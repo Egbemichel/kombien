@@ -4,7 +4,7 @@
 
 Kombien is an open-source, community-powered taxi fare intelligence project. It turns the everyday experience of Cameroonian roadside taxi fare negotiation — a shouted destination, a proposed price, a counteroffer — into shared, public, searchable knowledge.
 
-> **Status: early setup.** This repository currently contains brand and project infrastructure only — no application code has been added yet. The name, tagline, colors, and typography are decided (see [BRAND.md](BRAND.md)). The logo's *direction* is approved; the artwork itself hasn't been produced yet — see [brand/logo/README.md](brand/logo/README.md).
+> **Status: early setup.** This repository currently contains brand and project infrastructure only — no application code has been added yet. The name, tagline, colors, typography, and the first logo exports are all decided and in place (see [BRAND.md](BRAND.md) and [brand/logo/README.md](brand/logo/README.md)).
 
 ## What Kombien is
 
@@ -46,7 +46,8 @@ Contributions are welcome — code, design, data quality reports, and documentat
 
 - [x] Software license selected (MIT)
 - [x] Brand strategy, voice, colors, and typography approved
-- [ ] Logo artwork produced and approved (direction is decided — see [brand/logo/README.md](brand/logo/README.md))
+- [x] First logo exports produced and approved (usage guidelines still to be written — see [brand/logo/usage-guidelines.md](brand/logo/usage-guidelines.md))
+- [x] Repository protections configured (branch protection, tag protection, secret scanning — see [docs/setup/github-setup.md](docs/setup/github-setup.md))
 - [ ] Application scaffolding added
 - [ ] Public launch
 

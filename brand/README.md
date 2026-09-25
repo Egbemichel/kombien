@@ -2,7 +2,7 @@
 
 This directory is the working home for Kombien's brand identity: strategy, voice, logo, color, typography, and the tokens that let any codebase (web, mobile, docs) consume the brand consistently.
 
-**Status: strategy, voice, color, and typography are approved and in use.** The logo's creative *direction* is approved; the actual artwork hasn't been produced yet — see [logo/README.md](logo/README.md). Icon and illustration systems haven't started.
+**Status: strategy, voice, color, typography, and the first logo exports are approved and in use.** See [logo/README.md](logo/README.md) for the current logo files. Icon and illustration systems haven't started.
 
 ## Structure
 
@@ -44,7 +44,7 @@ It checks that expected token files, READMEs, and guideline files exist and are 
 
 ## What's still outstanding
 
-- The actual logo artwork (SVG/PNG/PDF exports) — the direction is decided, production happens in Figma. See [logo/README.md](logo/README.md).
+- Logo usage guidelines (clear space, minimum size, incorrect usage) — needs to be written against the real artwork now that it exists. See [logo/usage-guidelines.md](logo/usage-guidelines.md).
 - An icon or illustration system — neither has started.
 
 See [../BRAND.md](../BRAND.md) for how this relates to the software license.

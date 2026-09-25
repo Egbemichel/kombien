@@ -115,9 +115,31 @@ See [`../../CONTRIBUTING.md#first-time-contributor-checklist`](../../CONTRIBUTIN
 
 ---
 
-## Suggested repository settings (to configure manually in GitHub, not automatable from this repo)
+## 21. Repository protections (configured)
 
-- [ ] Protect `main`: require pull request review before merging.
-- [ ] Enable required status checks (the `validate-brand-assets` workflow, plus any future CI).
-- [ ] Restrict who can push directly to `main` (should be no one, once branch protection is on).
-- [ ] Decide who beyond the project owner can approve brand changes, and reflect it in [`../../GOVERNANCE.md`](../../GOVERNANCE.md).
+So an open-source repo with outside contributors can't lose work to a bad push, a bad merge, or a compromised CI run. All of this is live on `main`:
+
+**Branch protection (`main`):**
+- No direct pushes — every change goes through a PR.
+- Required status check: the `validate` (brand-assets) job must pass, and the branch must be up to date with `main`.
+- Force-pushes blocked, branch deletion blocked.
+- Conversation resolution required before merge.
+- Applies to admins too (`enforce_admins`), not just outside contributors.
+- Required approving reviews: **0** for now, since there's a single maintainer and GitHub won't let you approve your own PR. **Raise this to 1+ once a second trusted maintainer is added** — otherwise the PR gate and CI check still apply, just without a second pair of eyes.
+
+**Tag protection:** a ruleset blocks deletion, retagging, and non-fast-forward updates on any `v*` tag, so a published release can't be silently rewritten.
+
+**Repository security features enabled:**
+- Secret scanning + push protection (blocks commits containing obvious secrets before they land).
+- Dependabot security updates and vulnerability alerts.
+- Private vulnerability reporting (see [`../../SECURITY.md`](../../SECURITY.md)).
+
+**Access:** only the project owner has write/admin access. Outside contributors work through fork + PR only — that's the safe default and needs no further setup as the contributor base grows.
+
+**CODEOWNERS:** [`.github/CODEOWNERS`](../../.github/CODEOWNERS) routes all PRs to the project owner. Enable "require review from Code Owners" in branch protection once the owner isn't the sole approver bottleneck.
+
+### Not settable via API — configure manually
+
+**Actions → General → "Fork pull request workflows from outside collaborators."** GitHub only exposes this tri-state setting through the web UI, not the REST API. Recommendation for this project: **"Require approval for all external contributors"** — the strictest of the three options.
+
+Why the strict option specifically: Kombien is early-stage with a single maintainer, so the approval overhead is low (one person, reviewing occasionally), while the risk profile will only grow — once real application code, deploy workflows, or secrets exist, a workflow run from an untrusted PR is a real way to exfiltrate secrets or push a malicious change through CI. The two looser options ("new to GitHub" / "first-time contributor") stop requiring approval after someone's first merged contribution, which means a contributor who earns trust with one small, legitimate PR could submit a malicious workflow change afterward with no further gate. That trade-off isn't worth the saved clicks at this stage. Revisit this once there's a stable set of trusted, repeat contributors and the manual-approval overhead genuinely gets in the way.

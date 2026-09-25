@@ -1,0 +1,16 @@
+/*
+ * Kombien typography tokens — approved, see brand/typography/README.md
+ * Font files are not bundled here; see brand/typography/font-licensing.md
+ * for official sources.
+ */
+
+:root {
+  --font-display: "Space Grotesk", Inter, ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
+
+  --font-weight-display-regular: 400;
+  --font-weight-display-medium: 500;
+  --font-weight-display-bold: 700;
+  --font-weight-mono-regular: 400;
+  --font-weight-mono-medium: 500;
+}

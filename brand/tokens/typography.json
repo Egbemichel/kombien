@@ -1,0 +1,35 @@
+{
+  "status": "approved",
+  "families": {
+    "display": {
+      "value": "\"Space Grotesk\", Inter, ui-sans-serif, system-ui, sans-serif",
+      "source": "https://fonts.google.com/specimen/Space+Grotesk",
+      "license": "SIL Open Font License 1.1"
+    },
+    "mono": {
+      "value": "\"JetBrains Mono\", ui-monospace, SFMono-Regular, monospace",
+      "source": "https://www.jetbrains.com/lp/mono/",
+      "license": "SIL Open Font License 1.1"
+    }
+  },
+  "weights": {
+    "displayRegular": 400,
+    "displayMedium": 500,
+    "displayBold": 700,
+    "monoRegular": 400,
+    "monoMedium": 500
+  },
+  "roles": {
+    "h1": { "family": "display", "weight": "displayBold" },
+    "h2": { "family": "display", "weight": "displayBold" },
+    "h3": { "family": "display", "weight": "displayMedium" },
+    "body": { "family": "display", "weight": "displayRegular" },
+    "caption": { "family": "display", "weight": "displayMedium" },
+    "dataValue": { "family": "mono", "weight": "monoRegular" },
+    "dataValueEmphasis": { "family": "mono", "weight": "monoMedium" },
+    "routeLabel": { "family": "mono", "weight": "monoRegular" },
+    "timestamp": { "family": "mono", "weight": "monoRegular" },
+    "code": { "family": "mono", "weight": "monoRegular" }
+  },
+  "notes": "Point sizes and line-heights are left to the implementing design system. Font files are not redistributed here; see brand/typography/font-licensing.md."
+}

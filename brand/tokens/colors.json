@@ -1,0 +1,51 @@
+{
+  "status": "approved",
+  "base": {
+    "charcoal": "#202020",
+    "dustGrey": "#A7A18E",
+    "mango": "#F4A340",
+    "warmWhite": "#F4F1E8",
+    "deepNeutral": "#121212",
+    "mutedNeutral": "#6F6A60",
+    "success": "#0E6B34",
+    "warning": "#D97706",
+    "error": "#C81E1E"
+  },
+  "semantic": {
+    "light": {
+      "backgroundPrimary": "#F4F1E8",
+      "backgroundSecondary": "#ECE7D8",
+      "surface": "#F4F1E8",
+      "textPrimary": "#202020",
+      "textSecondary": "#6F6A60",
+      "accentPrimary": "#F4A340",
+      "accentOnAccent": "#202020",
+      "border": "#A7A18E",
+      "focus": "#F4A340",
+      "success": "#0E6B34",
+      "warning": "#D97706",
+      "error": "#C81E1E"
+    },
+    "dark": {
+      "backgroundPrimary": "#202020",
+      "backgroundSecondary": "#262626",
+      "surface": "#121212",
+      "textPrimary": "#F4F1E8",
+      "textSecondary": "#A7A18E",
+      "accentPrimary": "#F4A340",
+      "accentOnAccent": "#202020",
+      "border": "#6F6A60",
+      "focus": "#F4A340",
+      "success": "#0E6B34",
+      "warning": "#D97706",
+      "error": "#C81E1E"
+    }
+  },
+  "focusRing": {
+    "width": "2px",
+    "style": "solid",
+    "offset": "2px",
+    "color": "#F4A340"
+  },
+  "notes": "Values are literal hex, duplicated across base/semantic for direct consumption without a token resolver. Warning is intended for filled badges (Charcoal text on top), not as foreground text/icon color — see brand/colors/contrast-checks.md. See brand/colors/palette.md for full rationale."
+}

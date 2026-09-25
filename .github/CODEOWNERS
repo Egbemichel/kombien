@@ -1,0 +1,4 @@
+# Default owner for everything in the repo, until specific areas
+# (mobile app, backend, brand assets, etc.) get their own owners.
+# See ../GOVERNANCE.md for how this grows.
+* @Egbemichel

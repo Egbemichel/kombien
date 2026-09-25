@@ -1,0 +1,32 @@
+name: Validate brand assets
+
+on:
+  pull_request:
+    paths:
+      - "brand/**"
+      - "docs/**"
+      - "scripts/validate-brand-assets.mjs"
+      - ".github/workflows/validate-brand-assets.yml"
+  push:
+    branches:
+      - main
+    paths:
+      - "brand/**"
+      - "docs/**"
+      - "scripts/validate-brand-assets.mjs"
+      - ".github/workflows/validate-brand-assets.yml"
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Run brand asset validation
+        run: node scripts/validate-brand-assets.mjs

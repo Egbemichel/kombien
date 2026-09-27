@@ -4,7 +4,7 @@
 
 Kombien is an open-source, community-powered taxi fare intelligence project. It turns the everyday experience of Cameroonian roadside taxi fare negotiation — a shouted destination, a proposed price, a counteroffer — into shared, public, searchable knowledge.
 
-> **Status: early setup.** This repository currently contains brand and project infrastructure only — no application code has been added yet. The name, tagline, colors, typography, and the first logo exports are all decided and in place (see [BRAND.md](BRAND.md) and [brand/logo/README.md](brand/logo/README.md)).
+> **Status: early setup.** The name, tagline, colors, typography, and the first logo exports are decided and in place (see [BRAND.md](BRAND.md) and [brand/logo/README.md](brand/logo/README.md)). A Flutter app scaffold exists at [`app/`](app/README.md) with placeholder screens, wired up to the brand theme — no backend yet, and no real screens yet either (those come in one at a time to replace the placeholders).
 
 ## What Kombien is
 
@@ -26,12 +26,13 @@ Kombien exists so a passenger doesn't have to enter that negotiation completely 
 
 ## Repository structure
 
+- [`app/`](app/README.md) — the Flutter mobile app (frontend only for now).
 - [`brand/`](brand/README.md) — brand strategy, voice, logo system, color and typography tokens, and product/social assets.
 - [`docs/`](docs/setup/github-setup.md) — setup guides, architecture notes, and decision records.
 - [`scripts/`](scripts/validate-brand-assets.mjs) — tooling that validates brand asset structure.
 - [`.github/`](.github/PULL_REQUEST_TEMPLATE.md) — issue templates, PR template, and CI workflows.
 
-This will be a monorepo — application code lands alongside the brand system as it's built. When it's added, this README should be updated to describe the tech stack, local setup, and how to run the project — see [docs/setup/local-development.md](docs/setup/local-development.md) for the current placeholder.
+A monorepo — application code lives alongside the brand system. See [docs/setup/local-development.md](docs/setup/local-development.md) for how to run everything locally.
 
 ## Contributing
 
@@ -48,7 +49,9 @@ Contributions are welcome — code, design, data quality reports, and documentat
 - [x] Brand strategy, voice, colors, and typography approved
 - [x] First logo exports produced and approved (usage guidelines still to be written — see [brand/logo/usage-guidelines.md](brand/logo/usage-guidelines.md))
 - [x] Repository protections configured (branch protection, tag protection, secret scanning — see [docs/setup/github-setup.md](docs/setup/github-setup.md))
-- [ ] Application scaffolding added
+- [x] Application scaffolding added (Flutter, placeholder screens — see [app/README.md](app/README.md))
+- [ ] Real screens in place of placeholders
+- [ ] Backend/API
 - [ ] Public launch
 
 This list will be kept current as the project moves past initial setup.

@@ -27,10 +27,15 @@ const REQUIRED_FILES = [
   "brand/colors/contrast-checks.md",
   "brand/typography/README.md",
   "brand/typography/font-licensing.md",
+  "brand/motion/README.md",
   "brand/tokens/README.md",
 ];
 
-const REQUIRED_JSON = ["brand/tokens/colors.json", "brand/tokens/typography.json"];
+const REQUIRED_JSON = [
+  "brand/tokens/colors.json",
+  "brand/tokens/typography.json",
+  "brand/tokens/motion.json",
+];
 
 const REQUIRED_CSS = ["brand/tokens/colors.css", "brand/tokens/typography.css"];
 

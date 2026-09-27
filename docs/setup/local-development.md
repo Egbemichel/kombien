@@ -1,27 +1,40 @@
 # Local Development
 
-**Status: placeholder.** This repository currently contains brand and project infrastructure only — no application code has been added yet, so there's nothing to run locally beyond viewing documentation and, optionally, the brand tokens.
+## Prerequisites
 
-## What you can do today
+- **Flutter SDK** (stable channel) — see [Flutter's install docs](https://docs.flutter.dev/get-started/install). This repo was scaffolded against Flutter 3.38.
+- **Node.js** (a maintained LTS version) — only needed for the brand asset validation script, not the app itself.
+- Run `flutter doctor` and resolve anything it flags for the platform(s) you're targeting (Android/iOS/desktop/web) before running the app.
 
-- Browse the brand system starting at [`brand/README.md`](../../brand/README.md).
-- Preview the color tokens by opening [`brand/tokens/colors.css`](../../brand/tokens/colors.css) in any HTML page that imports it.
-- Run the brand asset validation script:
+## Running the app
+
+```bash
+cd app
+flutter pub get
+flutter run
+```
+
+See [`../../app/README.md`](../../app/README.md) for the app's structure, how brand tokens map into the Flutter theme, and how to replace a placeholder screen.
+
+## Running checks before a PR
+
+```bash
+cd app
+dart format --output=none --set-exit-if-changed .
+flutter analyze
+flutter test
+```
+
+These three run in CI on any PR touching `app/` — see [`../../.github/workflows/app-ci.yml`](../../.github/workflows/app-ci.yml).
+
+## Brand assets
 
 ```bash
 node scripts/validate-brand-assets.mjs
 ```
 
-This requires a maintained Node.js version (see the [GitHub Actions workflow](../../.github/workflows/validate-brand-assets.yml) for the version currently used in CI) but no dependency installation — the script is dependency-free.
+Dependency-free — checks that expected brand documentation, tokens, and export directories exist and are well-formed. Runs in CI on any PR touching `brand/`, `docs/`, or the script itself — see [`../../.github/workflows/validate-brand-assets.yml`](../../.github/workflows/validate-brand-assets.yml).
 
-## When application code is added
+## Troubleshooting
 
-This document should be rewritten to cover:
-
-- Prerequisites (runtime versions, package managers).
-- Install steps.
-- How to run the app locally (dev server, mobile emulator, etc.).
-- How to run tests.
-- Common troubleshooting.
-
-See [environment-variables.md](environment-variables.md) for the parallel placeholder on configuration.
+Nothing project-specific yet — this section will grow as real issues come up. If `flutter doctor` reports a toolchain problem (e.g. missing Android `cmdline-tools`), that's an environment setup issue independent of this repo; follow the guidance it prints.

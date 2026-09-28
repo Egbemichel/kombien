@@ -49,3 +49,7 @@ controller.animateWith(simulation);
 Carrying over `controller.velocity` when a spring is re-triggered mid-flight (e.g. the user drags again before the last spring settled) is what makes interruptions feel continuous instead of janky.
 
 See [`../tokens/motion.json`](../tokens/motion.json) for the concrete spring presets.
+
+## The mascot
+
+Kombien's mascot ([`../illustration/README.md`](../illustration/README.md)) is the concrete, ongoing test case for these principles — it has no facial features and expresses everything (idle, thinking, landing, celebrating, being concerned) through exactly this kind of spring-driven pose change. If a proposed mascot animation can't be justified by one of the principles above, it doesn't belong.

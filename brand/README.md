@@ -2,7 +2,7 @@
 
 This directory is the working home for Kombien's brand identity: strategy, voice, logo, color, typography, motion, and the tokens that let any codebase (web, mobile, docs) consume the brand consistently.
 
-**Status: strategy, voice, color, typography, and the first logo exports are approved and in use.** See [logo/README.md](logo/README.md) for the current logo files. Icon and illustration systems haven't started.
+**Status: strategy, voice, color, typography, the first logo exports, and the mascot are approved and in use.** See [logo/README.md](logo/README.md) for the current logo files and [illustration/README.md](illustration/README.md) for the mascot. Icon system hasn't started.
 
 ## Structure
 
@@ -15,7 +15,7 @@ This directory is the working home for Kombien's brand identity: strategy, voice
 | [`typography/`](typography/README.md) | Typeface roles, hierarchy, and licensing |
 | [`motion/`](motion/README.md) | Motion principles — spring-driven, restrained shape morphing |
 | [`icons/`](icons/README.md) | Icon system (not yet started) |
-| [`illustration/`](illustration/README.md) | Illustration system (not yet started) |
+| [`illustration/`](illustration/README.md) | The mascot (first exports in place) — no broader illustration system beyond it |
 | [`social/`](social/README.md) | Social preview images, templates, launch assets |
 | [`product/`](product/app-icon/.gitkeep) | App icon, favicon, empty states, screenshots |
 | [`tokens/`](tokens/README.md) | Machine-readable color, typography, and motion tokens |
@@ -46,6 +46,7 @@ It checks that expected token files, READMEs, and guideline files exist and are 
 ## What's still outstanding
 
 - Logo usage guidelines (clear space, minimum size, incorrect usage) — needs to be written against the real artwork now that it exists. See [logo/usage-guidelines.md](logo/usage-guidelines.md).
-- An icon or illustration system — neither has started.
+- The mascot is still unnamed.
+- An icon system — hasn't started.
 
 See [../BRAND.md](../BRAND.md) for how this relates to the software license.

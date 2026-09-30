@@ -8,6 +8,14 @@ Derived from the small orange (Mango) humanoid figure already built into the wor
 
 **Still unnamed.** Naming it is a small, low-stakes creative decision worth keeping for the project owner rather than settling here.
 
+### Visual description
+
+A filled circle for a head, sitting atop **one continuous swooping silhouette** — no separate limbs. The mass reads as a body-and-arm caught mid-lean: one side extends outward and up like a raised, reaching arm, the rest curves down and back into a tapered point, echoing the same curved swoosh used beneath the logomark's raised hand (a deliberate quiet echo between the two, not a coincidence worth losing if either gets redrawn later). No legs as a distinct shape, no facial features. The pose already reads as caught-in-motion at rest, before any animation is applied — which is doing real work: it's why the character doesn't need an idle pose designed separately from its "about to move" pose.
+
+### Why one shape matters
+
+Because it's a single silhouette rather than a rig of separate parts, every motion state below is achievable as a transform (scale, rotate, translate, skew) applied to the whole shape — not path morphing between distinct artworks, which Flutter doesn't do cheaply or well. `Idle`, `Thinking`, `Landed`, `Celebration`, and `Concerned` are all just different `KombienSprings`-driven transforms on one of the three static SVGs below, swapped by color rather than redrawn by pose. That's a real constraint worth keeping in mind before anyone proposes a fourth "state-specific" SVG variant — the whole design is economical specifically because it doesn't need one.
+
 ### Current exports
 
 In [`../logo/exports/svg/`](../logo/exports/svg/) — the mascot ships from the same export pipeline as the rest of the logo system, since it's sourced from the same Figma file:
@@ -18,7 +26,7 @@ In [`../logo/exports/svg/`](../logo/exports/svg/) — the mascot ships from the 
 | `mascot-charcoal.svg` | Solid Charcoal fill, for contexts where Mango wouldn't have enough contrast |
 | `mascot-dust-grey.svg` | Solid Dust Grey fill, for a muted/inactive context |
 
-Three color variants exist; no pose/state variants yet (idle, thinking, landed, celebrating, concerned — see [Motion states](#motion-states) below) — those are expected to be built as code-driven animations of a single silhouette, not as separate exported artwork per pose. If that assumption turns out wrong once real animation work starts, this doc and the export set both need to change together.
+Three color variants exist; no pose/state variants, and none are planned — poses (idle, thinking, landed, celebrating, concerned; see [Motion states](#motion-states) below) are code-driven transforms of a single silhouette, confirmed by the shape itself (see [Why one shape matters](#why-one-shape-matters)), not separate exported artwork per pose.
 
 ### Design rules
 

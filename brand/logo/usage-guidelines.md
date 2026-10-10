@@ -24,7 +24,7 @@ Fill in once real assets exist.
 
 | Field | Value |
 |---|---|
-| Figma file link | *https://www.figma.com/design/YkfXd089F1QKysiRGgy4Ny/personal?node-id=942-1496&t=Cqwke28zaASkfn0J-0* |
+| Figma file link | *Not published — the source file is private to the project owner. Ask via an issue if you need access.* |
 | Figma page name | *train* |
 | Date of export | *Friday 25th, September 2026* |
 | Designer / contributor | *By Egbe Michel Tambe* |

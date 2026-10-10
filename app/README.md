@@ -48,7 +48,7 @@ flutter analyze
 flutter test
 ```
 
-All three run in CI on any PR touching `app/` — see [`../.github/workflows/app-ci.yml`](../.github/workflows/app-ci.yml).
+All three run in CI on every PR — see [`../.github/workflows/app-ci.yml`](../.github/workflows/app-ci.yml).
 
 ## Replacing a placeholder screen
 

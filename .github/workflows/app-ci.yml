@@ -1,16 +1,13 @@
 name: App CI
 
+# No path filters on purpose: `analyze-and-test` is a required status check
+# on main, and a path-filtered workflow never reports on PRs that don't
+# touch those paths, which would block them from merging forever.
 on:
   pull_request:
-    paths:
-      - "app/**"
-      - ".github/workflows/app-ci.yml"
   push:
     branches:
       - main
-    paths:
-      - "app/**"
-      - ".github/workflows/app-ci.yml"
 
 jobs:
   analyze-and-test:

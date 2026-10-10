@@ -1,8 +1,8 @@
 # Brand Tokens
 
-Machine-readable, framework-agnostic tokens for color and typography. These are what code should import — the docs in [`../colors/`](../colors/README.md) and [`../typography/`](../typography/README.md) explain the *why*; these files are the *what*.
+Machine-readable, framework-agnostic tokens for color, typography, and motion. These are what code should import — the docs in [`../colors/`](../colors/README.md), [`../typography/`](../typography/README.md), and [`../motion/`](../motion/README.md) explain the *why*; these files are the *what*.
 
-**Status: approved.** Values match the current, decided palette and typefaces.
+**Status: color and typography are approved. Motion values are a starting point pending on-device tuning** — see [`../motion/README.md`](../motion/README.md).
 
 ## Files
 
@@ -12,6 +12,7 @@ Machine-readable, framework-agnostic tokens for color and typography. These are 
 | `colors.css` | CSS custom properties, with a `prefers-color-scheme: dark` override |
 | `typography.json` | Font family, source, license, and role mapping |
 | `typography.css` | CSS custom properties for font stacks |
+| `motion.json` | Spring presets (mass/stiffness/damping) and swap-fade durations |
 
 ## Consuming these tokens
 

@@ -1,13 +1,57 @@
 # Illustration System
 
-**Status: not started.** No illustration style exists yet. This directory is a placeholder for when one is designed.
+**Status: first mascot exports in place.** No broader illustration system beyond it.
 
-## Guidance for when this starts
+## The mascot
 
-- Should avoid generic African visual clichés and literal taxi/road imagery — see [../strategy/brand-strategy.md](../strategy/brand-strategy.md#what-the-brand-should-avoid).
-- If illustration is used at all (e.g. for empty states, onboarding), it should draw from the same exploration territory as the logo — language, negotiation, question/response, shared knowledge — rather than depicting vehicles or roads literally. See [../logo/README.md](../logo/README.md#exploration-territory-for-figma-not-for-this-repo).
-- Should be evaluated for whether it's needed at all — the brand strategy leans on typography and directness over illustration (see [../strategy/brand-strategy.md](../strategy/brand-strategy.md) — "visual goal" section in the original brief favors originality without relying on decorative imagery).
+Derived from the small orange (Mango) humanoid figure already built into the wordmark's letterforms (see [../logo/README.md](../logo/README.md#approved-direction)) — not a new, separately invented character. Two of these figures appear in the wordmark itself, plausibly representing the two sides of every fare negotiation (rider and driver); one of them, refined, becomes the standalone mascot used throughout the app.
 
-## Contributing an illustration system
+**Still unnamed.** Naming it is a small, low-stakes creative decision worth keeping for the project owner rather than settling here.
 
-Propose a direction via a [design proposal issue](../../.github/ISSUE_TEMPLATE/design_proposal.md) before producing a full set.
+### Visual description
+
+A filled circle for a head, sitting atop **one continuous swooping silhouette** — no separate limbs. The mass reads as a body-and-arm caught mid-lean: one side extends outward and up like a raised, reaching arm, the rest curves down and back into a tapered point, echoing the same curved swoosh used beneath the logomark's raised hand (a deliberate quiet echo between the two, not a coincidence worth losing if either gets redrawn later). No legs as a distinct shape, no facial features. The pose already reads as caught-in-motion at rest, before any animation is applied — which is doing real work: it's why the character doesn't need an idle pose designed separately from its "about to move" pose.
+
+### Why one shape matters
+
+Because it's a single silhouette rather than a rig of separate parts, every motion state below is achievable as a transform (scale, rotate, translate, skew) applied to the whole shape — not path morphing between distinct artworks, which Flutter doesn't do cheaply or well. `Idle`, `Thinking`, `Landed`, `Celebration`, and `Concerned` are all just different `KombienSprings`-driven transforms on one of the three static SVGs below, swapped by color rather than redrawn by pose. That's a real constraint worth keeping in mind before anyone proposes a fourth "state-specific" SVG variant — the whole design is economical specifically because it doesn't need one.
+
+### Current exports
+
+In [`../logo/exports/svg/`](../logo/exports/svg/) — the mascot ships from the same export pipeline as the rest of the logo system, since it's sourced from the same Figma file:
+
+| File | What it is |
+|---|---|
+| `mascot-mango.svg` | Default — solid Mango fill |
+| `mascot-charcoal.svg` | Solid Charcoal fill, for contexts where Mango wouldn't have enough contrast |
+| `mascot-dust-grey.svg` | Solid Dust Grey fill, for a muted/inactive context |
+
+Three color variants exist; no pose/state variants, and none are planned — poses (idle, thinking, landed, celebrating, concerned; see [Motion states](#motion-states) below) are code-driven transforms of a single silhouette, confirmed by the shape itself (see [Why one shape matters](#why-one-shape-matters)), not separate exported artwork per pose.
+
+### Design rules
+
+- **Faceless silhouette.** Solid fill in a single brand color per the variants above, no eyes, no mouth, ever. Nothing else in the identity has a "face" register — adding one to the mascot alone would read as a second, bolted-on art style rather than part of the same system.
+- **Expression comes from pose and motion only**, driven by the spring presets already in [`../tokens/motion.json`](../tokens/motion.json) / `KombienSprings` — not from added features. See [../motion/README.md](../motion/README.md) for the underlying motion principles this depends on.
+- **The logomark (the hand gesture) and the mascot (the figure) are separate things.** The gesture is the static identity mark — app icon, favicon, wordmark companion. The mascot is the animated in-product companion. They shouldn't be merged into one element.
+
+### Motion states
+
+| State | Behavior | Spring |
+|---|---|---|
+| Idle | Slow, barely-perceptible breathing scale (1.0 → 1.02 → 1.0, ~3s cycle) | `gentle` |
+| Thinking | Gentle lean/wobble, only while a real request is in flight | `gentle` |
+| Landed | One squash-and-stretch bounce when a route resolves | `snappy` |
+| Celebration | A bigger bounce, optionally a small raised-arm pose (a quiet callback to the logomark's own raised-hand gesture) | `snappy` |
+| Concerned | A tilt/slump — no exaggerated features needed | `standard` |
+
+Any state not listed here defaults to no motion at all — the mascot doesn't animate just to fill time. See [../motion/README.md](../motion/README.md#where-not-to-use-it) for the general restraint rule this follows.
+
+### Where it appears (and doesn't)
+
+Appears: splash, onboarding, search-in-progress, the destination end of the Fare Results map once the route line finishes drawing, the report-success/celebration moment, empty states (History with no searches yet).
+
+Deliberately absent: Settings/About, and anywhere inside a data-dense list or form (Fare Results' report list, the Report Fare form fields) — the mascot marks emotional/branding moments, not working screens.
+
+## Beyond the mascot
+
+No other illustration exists, and none should be added speculatively. If a genuine need comes up (a dedicated empty-state graphic, a launch asset), propose it via a [design proposal issue](../../.github/ISSUE_TEMPLATE/design_proposal.md) — it should draw from the same territory as the logo and mascot (the negotiation, language, the two-figure motif) rather than introducing a new visual language, and should avoid generic African visual clichés and literal taxi/road imagery either way (see [../strategy/brand-strategy.md](../strategy/brand-strategy.md#what-the-brand-should-avoid)).

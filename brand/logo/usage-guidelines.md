@@ -16,7 +16,7 @@
 - **Color restrictions** — which brand colors the logo may appear in.
 - **Favicon and app-icon usage** — how the symbol adapts to those formats.
 - **Figma source location** — link, page name, and access notes.
-- **Export naming conventions** — see [README.md](README.md#export-naming-convention).
+- **Export naming conventions** — see [README.md](README.md#current-exports).
 
 ## Source references
 

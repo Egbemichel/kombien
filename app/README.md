@@ -15,7 +15,8 @@ lib/
 │   ├── kombien_colors.dart          — mirrors brand/tokens/colors.json
 │   ├── kombien_typography.dart      — mirrors brand/tokens/typography.json
 │   ├── kombien_theme_extension.dart — mono text styles + status colors not covered by ThemeData
-│   └── kombien_theme.dart           — light/dark ThemeData built from the above
+│   ├── kombien_theme.dart           — light/dark ThemeData built from the above
+│   └── kombien_motion.dart          — mirrors brand/tokens/motion.json (spring presets)
 ├── screens/
 │   ├── root_shell.dart        — bottom-nav shell (Search / Report tabs)
 │   ├── home_screen.dart        — search a route (placeholder)
@@ -26,7 +27,9 @@ lib/
 
 ## Brand tokens
 
-Colors and typography are ported by hand from [`../brand/tokens/`](../brand/tokens/) into `lib/theme/`. If you change a brand token, update both — there's no codegen linking them yet. Fonts (Space Grotesk, JetBrains Mono) are fetched at runtime via the [`google_fonts`](https://pub.dev/packages/google_fonts) package rather than bundled as asset files, consistent with [`../brand/typography/font-licensing.md`](../brand/typography/font-licensing.md) (link to the official source instead of redistributing binaries).
+Colors, typography, and motion are ported by hand from [`../brand/tokens/`](../brand/tokens/) into `lib/theme/`. If you change a brand token, update both — there's no codegen linking them yet. Fonts (Space Grotesk, JetBrains Mono) are fetched at runtime via the [`google_fonts`](https://pub.dev/packages/google_fonts) package rather than bundled as asset files, consistent with [`../brand/typography/font-licensing.md`](../brand/typography/font-licensing.md) (link to the official source instead of redistributing binaries).
+
+`KombienSprings` (in `kombien_motion.dart`) wraps Flutter's built-in `SpringDescription`/`SpringSimulation` (`package:flutter/physics.dart` — no extra dependency). Not wired into any screen yet — see [`../brand/motion/README.md`](../brand/motion/README.md) for the principles and where motion should and shouldn't be used once real screens replace the placeholders.
 
 ## Running locally
 

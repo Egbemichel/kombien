@@ -1,0 +1,27 @@
+{
+  "status": "starting point — needs on-device tuning, not final",
+  "springs": {
+    "standard": {
+      "mass": 1.0,
+      "stiffness": 180,
+      "damping": 20,
+      "use": "Default for most morphs — containers resizing, cards expanding."
+    },
+    "gentle": {
+      "mass": 1.0,
+      "stiffness": 120,
+      "damping": 26,
+      "use": "Content reveals (e.g. fare results appearing) — minimal overshoot."
+    },
+    "snappy": {
+      "mass": 1.0,
+      "stiffness": 300,
+      "damping": 30,
+      "use": "Small controls — toggles, buttons, checkmarks."
+    }
+  },
+  "durations_ms": {
+    "contentSwapFade": 130
+  },
+  "notes": "Values are Flutter SpringDescription parameters (mass/stiffness/damping). See brand/motion/README.md for principles and where/where-not to use motion."
+}

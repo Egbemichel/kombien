@@ -76,7 +76,12 @@ No releases exist yet. Once the project ships something installable or versioned
 
 ## 13. GitHub Actions guidance
 
-One workflow exists today: [`.github/workflows/validate-brand-assets.yml`](../../.github/workflows/validate-brand-assets.yml), which runs `scripts/validate-brand-assets.mjs` on PRs and pushes to `main` that touch brand files, docs, or the script itself. It checks file structure and machine-readable token validity — **not** visual quality. Add further workflows (lint, test, build) once application code exists, and keep each workflow scoped to what it actually changed-path-triggers on, to avoid unnecessary CI runs.
+Two workflows exist, both running on every PR and every push to `main`:
+
+- [`validate-brand-assets.yml`](../../.github/workflows/validate-brand-assets.yml) (job `validate`) runs `scripts/validate-brand-assets.mjs`. It checks file structure and machine-readable token validity — **not** visual quality.
+- [`app-ci.yml`](../../.github/workflows/app-ci.yml) (job `analyze-and-test`) runs the Flutter format check, analyzer, and tests.
+
+**Don't add path filters to a workflow whose job is a required status check.** A path-filtered workflow doesn't run — and so never reports — on PRs that don't touch those paths, and GitHub then waits on the missing check forever, blocking the merge (even for admins, since protection applies to them). If a future workflow is slow enough to want path filtering, don't make it a required check.
 
 ## 14. Figma asset contribution workflow
 
@@ -121,7 +126,7 @@ So an open-source repo with outside contributors can't lose work to a bad push, 
 
 **Branch protection (`main`):**
 - No direct pushes — every change goes through a PR.
-- Required status check: the `validate` (brand-assets) job must pass, and the branch must be up to date with `main`.
+- Required status checks: the `validate` (brand-assets) and `analyze-and-test` (Flutter) jobs must both pass, and the branch must be up to date with `main`.
 - Force-pushes blocked, branch deletion blocked.
 - Conversation resolution required before merge.
 - Applies to admins too (`enforce_admins`), not just outside contributors.

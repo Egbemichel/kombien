@@ -25,7 +25,7 @@ flutter analyze
 flutter test
 ```
 
-These three run in CI on any PR touching `app/` — see [`../../.github/workflows/app-ci.yml`](../../.github/workflows/app-ci.yml).
+These three run in CI on every PR — see [`../../.github/workflows/app-ci.yml`](../../.github/workflows/app-ci.yml).
 
 ## Brand assets
 
@@ -33,7 +33,7 @@ These three run in CI on any PR touching `app/` — see [`../../.github/workflow
 node scripts/validate-brand-assets.mjs
 ```
 
-Dependency-free — checks that expected brand documentation, tokens, and export directories exist and are well-formed. Runs in CI on any PR touching `brand/`, `docs/`, or the script itself — see [`../../.github/workflows/validate-brand-assets.yml`](../../.github/workflows/validate-brand-assets.yml).
+Dependency-free — checks that expected brand documentation, tokens, and export directories exist and are well-formed. Runs in CI on every PR — see [`../../.github/workflows/validate-brand-assets.yml`](../../.github/workflows/validate-brand-assets.yml).
 
 ## Troubleshooting
 

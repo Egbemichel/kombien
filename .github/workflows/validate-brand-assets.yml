@@ -1,20 +1,13 @@
 name: Validate brand assets
 
+# No path filters on purpose: `validate` is a required status check on main,
+# and a path-filtered workflow never reports on PRs that don't touch those
+# paths, which would block them from merging forever.
 on:
   pull_request:
-    paths:
-      - "brand/**"
-      - "docs/**"
-      - "scripts/validate-brand-assets.mjs"
-      - ".github/workflows/validate-brand-assets.yml"
   push:
     branches:
       - main
-    paths:
-      - "brand/**"
-      - "docs/**"
-      - "scripts/validate-brand-assets.mjs"
-      - ".github/workflows/validate-brand-assets.yml"
 
 jobs:
   validate:

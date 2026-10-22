@@ -4,7 +4,7 @@
 
 ## The mascot
 
-Derived from the small orange (Mango) humanoid figure already built into the wordmark's letterforms (see [../logo/README.md](../logo/README.md#approved-direction)) — not a new, separately invented character. Two of these figures appear in the wordmark itself, plausibly representing the two sides of every fare negotiation (rider and driver); one of them, refined, becomes the standalone mascot used throughout the app.
+Derived from the small orange (Mango) humanoid figure already built into the wordmark's letterforms (see [../logo/README.md](../logo/README.md#approved-direction)) — not a new, separately invented character. Three of these figures appear in the wordmark itself: a pair forming the "m" (plausibly the two sides of every fare negotiation, rider and driver) and a single one forming the "n". One of them, refined, becomes the standalone mascot used throughout the app.
 
 **Still unnamed.** Naming it is a small, low-stakes creative decision worth keeping for the project owner rather than settling here.
 

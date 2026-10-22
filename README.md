@@ -47,7 +47,8 @@ Contributions are welcome — code, design, data quality reports, and documentat
 
 - [x] Software license selected (MIT)
 - [x] Brand strategy, voice, colors, and typography approved
-- [x] First logo exports produced and approved (usage guidelines still to be written — see [brand/logo/usage-guidelines.md](brand/logo/usage-guidelines.md))
+- [x] First logo exports produced and approved
+- [x] Logo usage guidelines written against the real exports (see [brand/logo/usage-guidelines.md](brand/logo/usage-guidelines.md))
 - [x] Repository protections configured (branch protection, tag protection, secret scanning — see [docs/setup/github-setup.md](docs/setup/github-setup.md))
 - [x] Application scaffolding added (Flutter, placeholder screens — see [app/README.md](app/README.md))
 - [ ] Real screens in place of placeholders

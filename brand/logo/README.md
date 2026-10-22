@@ -9,7 +9,7 @@
 This corrects an earlier version of this document, which described a direction (an abstract "?"/price-notation symbol) that was never actually built. What follows describes the real, exported artwork.
 
 - **The logomark** is a raised two-finger hand gesture with a small curved swoosh beneath it — read at once as *counting* ("how many/how much") and as the physical act of hailing a taxi. It's gestural and specific to the cultural moment the whole project is named after, without being a literal vehicle, road, or map icon (see [../strategy/brand-strategy.md](../strategy/brand-strategy.md#what-the-brand-should-avoid) — that "avoid" list is about generic mobility-app iconography, not about gesture generally, and a hand doesn't fall into it).
-- **The wordmark** is custom lowercase lettering for "kombien" with two small orange (Mango) faceless humanoid figures built directly into the letterforms, standing in for what would otherwise be plain dots/connectors. Two figures, specifically — a natural, if unconfirmed, read as the two sides of every fare negotiation (rider and driver).
+- **The wordmark** is custom lowercase lettering for "kombien" with three small orange (Mango) faceless humanoid figures built directly into the letterforms, standing in for what would otherwise be plain strokes/dots: a pair side by side forming the "m", and a single one forming the "n". The pair in the "m" is a natural, if unconfirmed, read as the two sides of every fare negotiation (rider and driver).
 - Both the logomark and the wordmark's embedded figures work in flat, single-color silhouette and hold up at small sizes (favicon/app-icon scale).
 - The wordmark's figure is also the seed for Kombien's mascot — see [../illustration/README.md](../illustration/README.md) for that character system. The logomark (the hand gesture) and the mascot (the figure) are deliberately two separate things: one is the static identity mark, the other is the animated in-product companion.
 
@@ -61,6 +61,6 @@ New assets don't need to match these exactly, but should follow the spirit of wh
 2. Update [usage-guidelines.md](usage-guidelines.md#source-references) if the Figma source, export date, or approval status changed.
 3. Open a PR with the files and doc update together, using the design-PR checklist in the [PR template](../../.github/PULL_REQUEST_TEMPLATE.md) (clear-space/min-size review, contrast review, confirm no unlicensed assets).
 
-## Still outstanding
+## Usage guidelines
 
-[usage-guidelines.md](usage-guidelines.md) still needs its clear-space, minimum-size, background-usage, and incorrect-usage sections filled in against the real artwork above — that has to be written by looking at the actual shapes, not guessed at in advance.
+Clear space, minimum sizes, approved backgrounds, incorrect usage, and the known limitations of the current exports are in [usage-guidelines.md](usage-guidelines.md), measured from the files above.

@@ -45,7 +45,7 @@ It checks that expected token files, READMEs, and guideline files exist and are 
 
 ## What's still outstanding
 
-- Logo usage guidelines (clear space, minimum size, incorrect usage) — needs to be written against the real artwork now that it exists. See [logo/usage-guidelines.md](logo/usage-guidelines.md).
+- Logo export gaps listed in [logo/usage-guidelines.md](logo/usage-guidelines.md#known-limitations) (no padding in the SVGs, no dark-ink one-color version, a near-white off-palette stroke, no print minimums).
 - The mascot is still unnamed.
 - An icon system — hasn't started.
 

@@ -56,7 +56,7 @@ Enable GitHub Discussions once there's enough contributor activity to justify it
 
 ## 9. CODEOWNERS guidance
 
-Not yet needed — there's only one contributor area (this initial setup). Add a `CODEOWNERS` file once distinct areas exist (e.g. `/brand/` owned by a design maintainer, `/mobile/` by a mobile lead) so reviews route automatically. Until then, all PRs should go to the project owner or listed maintainers in [`../../GOVERNANCE.md`](../../GOVERNANCE.md).
+A [`CODEOWNERS`](../../.github/CODEOWNERS) file exists, routing every path to the project owner (`* @Egbemichel`). Split it into per-directory entries once distinct areas have their own trusted owners (e.g. `/brand/` owned by a design maintainer, `/app/` by a mobile lead) so reviews route automatically. See [`../../GOVERNANCE.md`](../../GOVERNANCE.md) for how maintainers get added.
 
 ## 10. Security reporting
 

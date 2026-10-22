@@ -2,7 +2,7 @@
 
 ## Current status
 
-Kombien does not yet have deployed application code or infrastructure — this repository currently contains brand and project setup only. This policy is in place so a reporting path exists from day one and stays current as the project grows.
+Kombien has no deployed infrastructure yet. This repository contains the brand system, project docs, and a frontend-only Flutter app ([`app/`](app/README.md)) with no backend, no API, and no collected user data. This policy is in place so a reporting path exists from day one and stays current as the project grows.
 
 ## Reporting a vulnerability
 
@@ -20,10 +20,10 @@ If you believe you've found a security vulnerability in this repository or in a 
 
 ## Scope
 
-Once application code and data infrastructure exist, this document should be updated to specify:
+Once a backend and data infrastructure exist, this document should be updated to specify:
 
 - Which components are in scope (API, mobile app, data pipeline, etc.).
 - How user-reported fare data should be handled from a privacy standpoint.
 - Any bug bounty or recognition program, if one is introduced.
 
-Until then, treat this policy as covering the repository itself (supply-chain concerns in dependencies, leaked secrets, malicious contributions, etc.).
+Until then, treat this policy as covering the repository itself and the Flutter app's source (supply-chain concerns in dependencies such as Dart/pub packages, leaked secrets, malicious contributions, etc.).

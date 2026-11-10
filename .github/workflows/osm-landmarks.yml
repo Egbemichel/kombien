@@ -1,0 +1,48 @@
+# Builds the landmarks migration from OpenStreetMap on GitHub's fast
+# network (the Cameroon extract is ~220 MB) and hands back only the SQL.
+# Run it from the Actions tab, or by pushing to the data/osm-landmarks
+# branch; download the "osm-landmarks" artifact, review, then
+# `supabase db push`.
+name: OSM landmarks
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [data/osm-landmarks]
+    paths:
+      - supabase/tools/osm_landmarks.py
+      - .github/workflows/osm-landmarks.yml
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install osmium
+        run: pip install osmium
+
+      - name: Download the Cameroon extract (Geofabrik)
+        run: |
+          curl -sSfL --retry 5 -o cameroon.osm.pbf \
+            https://download.geofabrik.de/africa/cameroon-latest.osm.pbf
+          ls -lh cameroon.osm.pbf
+
+      - name: Build the migration
+        run: |
+          python supabase/tools/osm_landmarks.py --pbf cameroon.osm.pbf \
+            --out osm_landmarks.sql
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: osm-landmarks
+          path: osm_landmarks.sql
+          retention-days: 7

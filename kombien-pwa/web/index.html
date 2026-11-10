@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <base href="/">
+  <meta charset="UTF-8">
+  <!-- viewport-fit=cover: the app draws behind notches; it keeps its own
+       content inside the safe areas. -->
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="description" content="Kombien: see what other riders paid for your taxi route before you negotiate. A range, not a guess.">
+  <meta name="theme-color" content="#F4EEE3">
+
+  <!-- Installable app -->
+  <link rel="manifest" href="manifest.webmanifest">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="Kombien">
+  <link rel="apple-touch-icon" sizes="180x180" href="icons/kombien-home-180.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="icons/kombien-favicon-32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="icons/kombien-favicon-16.png">
+
+  <!-- Link previews (WhatsApp, Facebook, X) -->
+  <meta property="og:title" content="Kombien: je paie combien?">
+  <meta property="og:description" content="See what other riders paid for your taxi route before you negotiate.">
+  <meta property="og:image" content="https://kombien.egbemichel.tech/icons/kombien-share.jpg">
+  <meta property="og:url" content="https://kombien.egbemichel.tech/">
+
+  <title>Kombien</title>
+  <style>
+    html, body { margin: 0; height: 100%; background: #F4EEE3; }
+    /* Shown while the app downloads; gone at the app's first frame. */
+    #loading {
+      position: fixed; inset: 0; display: flex; align-items: center;
+      justify-content: center; background: #F4EEE3;
+      transition: opacity 320ms ease-out;
+    }
+    #loading img { width: 203px; animation: breathe 1.6s ease-in-out infinite; }
+    #loading.gone { opacity: 0; pointer-events: none; }
+    #loading { flex-direction: column; gap: 22px; }
+    #slow {
+      max-width: 260px; margin: 0; text-align: center; opacity: 0;
+      font: 400 14px/1.45 system-ui, sans-serif; color: #6E6B66;
+      transition: opacity 400ms ease-out;
+    }
+    #slow.show { opacity: 1; }
+    @keyframes breathe { 50% { opacity: .55; } }
+    @media (prefers-reduced-motion: reduce) { #loading img { animation: none; } }
+  </style>
+</head>
+<body>
+  <div id="loading" aria-label="Kombien is loading" role="img">
+    <img src="wordmark.svg" alt="Kombien">
+    <p id="slow"></p>
+  </div>
+  <noscript>Kombien needs JavaScript to run.</noscript>
+  <script>
+    // Only the very first visit explains the wait: the app is downloading.
+    // After the first launch finishes it is on the phone, and a slow start
+    // is just a slow phone: nothing is said.
+    var seen = false;
+    try { seen = !!localStorage.getItem('kombien-seen'); } catch (_) {}
+    if (!seen) setTimeout(function () {
+      var slow = document.getElementById('slow');
+      if (!slow) return;
+      slow.textContent = /^fr/i.test(navigator.language)
+        ? 'Premier chargement : Kombien se télécharge. Sur les données mobiles, ça peut prendre une minute. Ensuite, il s’ouvre vite, même hors ligne.'
+        : 'First visit: Kombien is downloading. On mobile data this can take a minute. After that it opens fast, even offline.';
+      slow.classList.add('show');
+    }, 5000);
+
+    // "Install Kombien" in Settings reads this.
+    window.kombienInstall = {
+      prompt: null,
+      available: false,
+      installed: window.matchMedia('(display-mode: standalone)').matches ||
+        window.navigator.standalone === true,
+      ios: /iphone|ipad|ipod/i.test(navigator.userAgent),
+      ask: function () {
+        var p = window.kombienInstall.prompt;
+        if (!p) return Promise.resolve('unavailable');
+        p.prompt();
+        return p.userChoice.then(function (c) {
+          window.kombienInstall.prompt = null;
+          window.kombienInstall.available = false;
+          if (c.outcome === 'accepted') window.kombienInstall.installed = true;
+          window.dispatchEvent(new Event('kombien-install-change'));
+          return c.outcome;
+        });
+      },
+    };
+    window.addEventListener('beforeinstallprompt', function (e) {
+      e.preventDefault(); // offered from Settings instead
+      window.kombienInstall.prompt = e;
+      window.kombienInstall.available = true;
+      window.dispatchEvent(new Event('kombien-install-change'));
+    });
+    window.addEventListener('appinstalled', function () {
+      window.kombienInstall.installed = true;
+      window.kombienInstall.available = false;
+      window.dispatchEvent(new Event('kombien-install-change'));
+    });
+
+    window.addEventListener('flutter-first-frame', function () {
+      try { performance.mark('kombien-first-frame'); } catch (_) {}
+      try { localStorage.setItem('kombien-seen', '1'); } catch (_) {}
+      var l = document.getElementById('loading');
+      l.classList.add('gone');
+      setTimeout(function () { l.remove(); }, 400);
+    });
+    // Notifications: Settings and the after-report offer read this.
+    // enable() must run inside a tap (iPhone requires it); it asks the
+    // browser, then subscribes with Kombien's public key (push-config.js)
+    // and returns the subscription as JSON, or '' when refused.
+    window.kombienPush = {
+      supported: function () {
+        return !!window.kombienPushKey && 'serviceWorker' in navigator &&
+          'PushManager' in window && 'Notification' in window;
+      },
+      permission: function () {
+        return 'Notification' in window ? Notification.permission : 'denied';
+      },
+      enable: function () {
+        var key = window.kombienPushKey;
+        return Notification.requestPermission().then(function (p) {
+          if (p !== 'granted') return '';
+          return navigator.serviceWorker.ready.then(function (reg) {
+            return reg.pushManager.getSubscription()
+              .then(function (old) { return old && old.unsubscribe(); })
+              .then(function () {
+                var raw = atob(key.replace(/-/g, '+').replace(/_/g, '/') +
+                  '==='.slice((key.length + 3) % 4));
+                var bytes = new Uint8Array(raw.length);
+                for (var i = 0; i < raw.length; i++) bytes[i] = raw.charCodeAt(i);
+                return reg.pushManager.subscribe({
+                  userVisibleOnly: true,
+                  applicationServerKey: bytes,
+                });
+              })
+              .then(function (sub) { return JSON.stringify(sub.toJSON()); });
+          });
+        }).catch(function () { return ''; });
+      },
+      // Unsubscribes; returns the endpoint that was dropped, or ''.
+      disable: function () {
+        return navigator.serviceWorker.ready
+          .then(function (reg) { return reg.pushManager.getSubscription(); })
+          .then(function (sub) {
+            if (!sub) return '';
+            var endpoint = sub.endpoint;
+            return sub.unsubscribe().then(function () { return endpoint; });
+          })
+          .catch(function () { return ''; });
+      },
+    };
+
+    // "Update ready" in the app reads this: set once a new release has
+    // downloaded and taken over (it shows fully after a restart).
+    window.kombienUpdate = {
+      ready: false,
+      apply: function () { window.location.reload(); },
+    };
+
+    // Offline support: keeps the app on the phone after the first visit.
+    if ('serviceWorker' in navigator) {
+      // No controller yet: a first visit, not an update.
+      var updating = !!navigator.serviceWorker.controller;
+      window.addEventListener('load', function () {
+        navigator.serviceWorker.register('sw.js').then(function (reg) {
+          reg.addEventListener('updatefound', function () {
+            var worker = reg.installing;
+            if (!worker) return;
+            worker.addEventListener('statechange', function () {
+              if (worker.state !== 'activated' || !updating) return;
+              window.kombienUpdate.ready = true;
+              window.dispatchEvent(new Event('kombien-update-ready'));
+            });
+          });
+          // An installed app can stay open for days: look for a new
+          // release whenever it comes back to the front.
+          document.addEventListener('visibilitychange', function () {
+            if (document.visibilityState === 'visible') {
+              reg.update().catch(function () {});
+            }
+          });
+        }).catch(function () {});
+      });
+    }
+  </script>
+  <script src="push-config.js"></script>
+  <script>
+    // iPhone: the Home Screen icon goes inside the page (ios-icon.js), so
+    // "Add to Home Screen" never has to download it separately.
+    if (/iPhone|iPad|iPod/.test(navigator.userAgent)) {
+      var ic = document.createElement('script');
+      ic.src = 'ios-icon.js';
+      document.head.appendChild(ic);
+    }
+  </script>
+  <script src="flutter_bootstrap.js" async></script>
+</body>
+</html>

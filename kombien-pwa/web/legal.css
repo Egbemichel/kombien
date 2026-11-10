@@ -1,0 +1,40 @@
+/* Kombien legal pages: plain, fast, readable on a small phone. */
+@font-face { font-family: 'DM Sans'; font-weight: 400; src: url('/fonts/DMSans-Regular.ttf') format('truetype'); font-display: swap; }
+@font-face { font-family: 'DM Sans'; font-weight: 500; src: url('/fonts/DMSans-Medium.ttf') format('truetype'); font-display: swap; }
+@font-face { font-family: 'DM Sans'; font-weight: 700; src: url('/fonts/DMSans-Bold.ttf') format('truetype'); font-display: swap; }
+
+:root {
+  --mango: #F4A340;
+  --charcoal: #202020;
+  --background: #F4EEE3;
+  --surface: #FFF1D8;
+  --surface-border: #FADDA8;
+  --muted: #6E6B66;
+}
+
+* { box-sizing: border-box; }
+html { background: var(--background); }
+body {
+  margin: 0;
+  font: 400 16px/1.6 'DM Sans', system-ui, sans-serif;
+  color: var(--charcoal);
+  background: var(--background);
+  padding: max(24px, env(safe-area-inset-top)) 18px max(32px, env(safe-area-inset-bottom));
+}
+main { max-width: 680px; margin: 0 auto; }
+header { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 28px; }
+header img { width: 114px; display: block; }
+header a { color: var(--charcoal); font-weight: 500; text-decoration: none; white-space: nowrap; }
+h1 { font-size: 30px; line-height: 1.15; font-style: italic; font-weight: 400; margin: 0 0 6px; }
+.meta { color: var(--muted); font-size: 14px; margin: 0 0 24px; }
+.summary {
+  background: var(--surface); border: 1.2px solid var(--surface-border);
+  border-radius: 20px; padding: 16px 20px; margin: 0 0 28px;
+}
+.summary p { margin: 0; }
+h2 { font-size: 20px; font-weight: 700; margin: 30px 0 8px; }
+ul { padding-left: 20px; }
+li { margin: 4px 0; }
+a { color: var(--mango); font-weight: 500; }
+footer { margin-top: 40px; color: var(--muted); font-size: 14px; }
+footer a { color: var(--muted); }

@@ -1,14 +1,47 @@
 # Environment Variables
 
-**Status: placeholder.** The app ([`../../app/`](../../app/)) is frontend-only right now — no backend, no API base URL, no keys — so there's nothing to configure yet.
+The app talks to [Supabase](https://supabase.com) (see
+[decision 0001](../decisions/0001-app-stack.md)). It takes two build-time
+values; without them it runs on built-in sample data, so it works with no
+backend at all.
 
-## When this becomes relevant
+| Variable | What it is | Secret? |
+| --- | --- | --- |
+| `SUPABASE_URL` | The project's API URL. Local: `http://127.0.0.1:54321`. | No |
+| `SUPABASE_PUBLISHABLE_KEY` | The project's publishable (anon) key. | No: it ships inside the app. Row-level security in the database decides what it can do. |
 
-Once a backend or data pipeline is added, this document should list:
+Never put the **secret** / `service_role` key in the app or in this repo.
 
-- Each required and optional environment variable.
-- What it configures (API keys, database connection strings, feature flags).
-- Where to get a value for local development (e.g. a `.env.example` file).
-- Which variables are safe to commit versus which must stay secret.
+## Running the app against Supabase
 
-Until then, note that `.env*` files are already excluded via [`.gitignore`](../../.gitignore) so secrets aren't committed by accident once they exist.
+1. Copy [`app/supabase.example.json`](../../app/supabase.example.json) to
+   `app/supabase.local.json` (git-ignored) and fill in the two values.
+2. Run:
+
+   ```bash
+   flutter run -d chrome --dart-define-from-file=supabase.local.json
+   ```
+
+## Local Supabase
+
+Needs Docker Desktop running and the Supabase CLI.
+
+```bash
+supabase start          # from the repo root; applies supabase/migrations and supabase/seed.sql
+supabase status         # prints the local URL and publishable key
+supabase db reset       # rebuild the local database from migrations + seed
+supabase stop
+```
+
+## Hosted project
+
+Create the project in the Supabase dashboard (region close to Cameroon, e.g.
+Europe), then link and push the schema:
+
+```bash
+supabase link --project-ref <project-ref>
+supabase db push
+```
+
+In the dashboard, under Authentication → Sign In / Providers, turn on
+**Anonymous sign-ins**: riders report fares without an account.

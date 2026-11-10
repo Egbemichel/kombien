@@ -1,0 +1,326 @@
+{
+  "@@locale": "en",
+  "languageCode": "En",
+  "@languageCode": {
+    "description": "Short code in the language selector."
+  },
+  "menuFares": "Je paie combien?",
+  "@menuFares": {
+    "description": "Menu entry for the fare lookup. The brand phrase: same in every language."
+  },
+  "menuReport": "Report",
+  "menuSettings": "Settings",
+  "menuStyleGuide": "Style guide",
+  "skip": "Skip",
+  "continueAction": "Continue",
+  "getStarted": "Get started",
+  "save": "Save",
+  "cancel": "Cancel",
+  "remove": "Remove",
+  "onboardingFaresTitle": "Je paie combien?",
+  "@onboardingFaresTitle": {
+    "description": "Brand phrase: same in every language."
+  },
+  "onboardingFaresBody": "See what other riders reported for your route before you start negotiating. A range, not a guess.",
+  "onboardingFaresFootnote": "Fares are reported by riders. They're not official.",
+  "onboardingBubbleAsk": "Post Centrale,\nXAF 500",
+  "@onboardingBubbleAsk": {
+    "description": "Rider hailing a taxi: destination and offered price."
+  },
+  "onboardingBubbleReply": "Non",
+  "@onboardingBubbleReply": {
+    "description": "Driver's reply. Kept in French: it is what drivers say."
+  },
+  "onboardingReportTitle": "Paid? Say so.",
+  "onboardingReportBody": "Add what you paid in a few taps. The next rider will see it.",
+  "onboardingReportFootnote": "Help someone help you",
+  "termsLead": "I Agree to Kombien's ",
+  "termsOfUse": "Terms of Use",
+  "termsJoin": " and ",
+  "privacyPolicy": "Privacy Policy",
+  "termsTail": "",
+  "locationPromptTitle": "Hey there! Worried about what fare to propose?",
+  "locationPromptBody": "Turn on location so Kombien can pinpoint your exact starting spot and match it against real fares reported by other riders nearby. Propose with confidence. No guessing, no overpaying.",
+  "locationPromptAction": "Get started from where I am",
+  "locationPromptSkip": "Skip for now",
+  "whereFrom": "Where are you leaving from?",
+  "myLocation": "My location",
+  "searchLandmark": "Search a landmark",
+  "locationDenied": "Can't see where you are. Search a landmark instead",
+  "useMyLocation": "Use my location",
+  "turnOnLocation": "Location is off. Turn it on",
+  "whereTo": "Tu go où?",
+  "@whereTo": {
+    "description": "Franglais brand phrase: same in every language."
+  },
+  "startTyping": "Start typing...",
+  "seeAllSuggestions": "See all suggestions",
+  "savedDestinations": "Your saved destinations",
+  "savedEmptyHint": "Pick a place, then tap Save this place to keep it here.",
+  "saveThisPlace": "Save this place",
+  "savedAs": "Saved as {name}",
+  "@savedAs": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "saveAs": "Save as {name}",
+  "@saveAs": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "nameThePlace": "Name ",
+  "@nameThePlace": {
+    "description": "Followed by the place in bold: 'Name Eyang'."
+  },
+  "otherName": "Other name…",
+  "placeHome": "Home",
+  "placeSchool": "School",
+  "placeWork": "Work",
+  "settingsTitle": "Settings",
+  "settingsLanguage": "Language",
+  "fareBasedOn": "Based on past rider reports",
+  "fareDemo": "Demo range, not real reports yet",
+  "fareDisclaimer": "This range is a crowd-sourced average of what real riders recently paid on this route, not official fares. It's a guide to help you propose, not a fixed or guaranteed price.",
+  "fareCurrency": "FCFA",
+  "bringCash": "Make sure to bring cash",
+  "feedbackQuestion": "Was this information helpful?",
+  "feedbackThanksLabel": "Thank you!",
+  "feedbackThanksTitle": "Feedback recorded!",
+  "feedbackThanksBody": "Your answer will help us make the product even better",
+  "startMissing": "Add where you're leaving from first",
+  "startPickOne": "Pick your starting point from the suggestions",
+  "paidSomethingElse": "Paid something else?",
+  "reportItHere": "Report it here",
+  "noReportsTitle": "No reports yet for this route. Be the first.",
+  "addReport": "Add report",
+  "noMatchTitle": "Couldn't find that place. Try a nearby landmark instead",
+  "offlineTitle": "No connection. Showing saved fares.",
+  "offlineNoSaved": "No connection. Check your data and try again.",
+  "retry": "Retry",
+  "savedFareNote": "Saved fare from your last search. It may be out of date.",
+  "reportFromLabel": "Where are you/did you leave from?",
+  "reportTo": "To",
+  "reportTitle": "Report",
+  "reportingFor": "You are reporting for the route starting...",
+  "routeFrom": "From",
+  "routeTo": "To",
+  "priceSuggestions": "Some suggestions (prices in FCFA)",
+  "optional": "Optional",
+  "timeOfDay": "Time of day",
+  "dayMorning": "Morning",
+  "dayDay": "Day",
+  "dayNight": "Night",
+  "weather": "Weather condition",
+  "weatherClear": "Clear",
+  "weatherRainy": "Rainy",
+  "vehicleType": "Vehicle type",
+  "vehicleTaxi": "Taxi",
+  "vehicleMoto": "Moto",
+  "reportAddedLabel": "Thanks!",
+  "reportAddedTitle": "Report added!",
+  "reportAddedBody": "Your report is now helping other riders on this route",
+  "reportQueuedTitle": "Saved on this phone",
+  "reportQueuedBody": "It will be sent when you're back online",
+  "amountRange": "Enter an amount between 50 and 50 000 FCFA",
+  "back": "Back",
+  "settingsLocation": "Location",
+  "on": "On",
+  "off": "Off",
+  "myCity": "My city",
+  "myCityNote": "Sets which offline pack to keep and update, data from other cities gets deleted from this device after some time",
+  "offline": "Offline",
+  "savedFaresMap": "Saved fares and map",
+  "savedOnPhone": "Saved on this phone.",
+  "updatedDaysAgo": "{days, plural, =0{Updated today} =1{Updated yesterday} other{Updated {days} days ago}}",
+  "@updatedDaysAgo": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "addCity": "Add a city",
+  "chooseCity": "Choose your city",
+  "offlineData": "Offline data",
+  "sendingReports": "Sending reports",
+  "wifiAndMobile": "Wi-Fi and mobile data",
+  "mobileOnly": "Mobile data only",
+  "wifiOnly": "Wi-Fi Only",
+  "privacy": "Privacy",
+  "whatKombienStores": "What Kombien stores",
+  "whatKombienStoresBody": "No account, no name, no phone number. A fare report is a route, a price, the time, and optional details (weather, vehicle). Each phone signs in anonymously so spam can be stopped, never to follow anyone. Only route averages are ever shown, and only once enough riders reported a route. Saved places, your language and your settings stay on this phone.",
+  "myReports": "My reports",
+  "reportsFromPhone": "Reports from this phone",
+  "aboutKombien": "About Kombien",
+  "howFaresWork": "How reported fares work",
+  "howFaresWorkBody": "Riders report what they paid after a ride. For each route, Kombien shows the middle half of recent reports (the last 90 days) as a range, so one odd price doesn't move it. A route needs at least 3 reports before a range appears. It's a guide for negotiating, not an official fare.",
+  "contributeGithub": "Contribute on Github",
+  "devAbout": "About the developer",
+  "devHello": "Hey, I'm Mich!",
+  "devStory": "Built Kombien so we all stop getting laughed at by taxi drivers. Drop your fare after your next ride to keep the community sharp!",
+  "devCoffeeAsk": "Saved some cash today? Toss a coffee my way to keep the servers running.",
+  "devCoffee": "Get the dev a coffee",
+  "devThanksLead": "Special thanks to ",
+  "devThanksTail": " for all the wisdom and help proving once more the immense power of experience",
+  "letsConnect": "Let's connect",
+  "devTagline": "Curious, intentional and always chasing the next idea worth bringing to life",
+  "noSavedFares": "No saved fares for {city} yet. Download them to use Kombien without a connection.",
+  "@noSavedFares": {
+    "placeholders": {
+      "city": {
+        "type": "String"
+      }
+    }
+  },
+  "reportsWaiting": "{count, plural, =1{1 report waiting for a connection. It'll send automatically} other{{count} reports waiting for a connection. They'll send automatically}}",
+  "@reportsWaiting": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "deleteReportsTitle": "{count, plural, =1{Delete the report saved on this phone?} other{Delete the {count} reports saved on this phone?}}",
+  "@deleteReportsTitle": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "deleteReportsBody": "Reports already sent stay in the shared data.",
+  "deleteReportsAction": "Delete reports from this phone",
+  "delete": "Delete",
+  "myReportsTitle": "My reports",
+  "myReportsEmpty": "No reports from this phone yet. Paid for a ride? Report it, the next rider will thank you.",
+  "reportSent": "Sent",
+  "reportWaiting": "Waiting for a connection",
+  "close": "Close",
+  "reportProblem": "Report a problem",
+  "problemTitle": "Something not right?",
+  "problemWhat": "What went wrong?",
+  "problemWrongFare": "A fare looks wrong",
+  "problemPlaceMissing": "A place is missing",
+  "problemBug": "Something doesn't work",
+  "problemOther": "Something else",
+  "problemWhere": "Where did it happen?",
+  "whereFares": "Finding fares",
+  "whereReport": "Reporting",
+  "whereSettings": "Settings",
+  "whereOther": "Somewhere else",
+  "problemMore": "Tell us more (optional)",
+  "problemMoreHint": "What happened?",
+  "send": "Send",
+  "problemThanksLabel": "Thank you!",
+  "problemThanksTitle": "Problem reported",
+  "problemThanksBody": "We read every report and use it to make Kombien better.",
+  "installKombien": "Install Kombien",
+  "installIosTitle": "Put Kombien on your home screen",
+  "installIosBody": "In Safari, tap the Share button, then \"Add to Home Screen\". Kombien then opens like an app, even offline.",
+  "installedLabel": "Installed",
+  "installedTitle": "Kombien is on your phone",
+  "installedBody": "Open it from your home screen, even without internet.",
+  "osmCredit": "Places © OpenStreetMap contributors",
+  "packFailedLabel": "No connection",
+  "packFailedTitle": "Couldn't save that city",
+  "packFailedBody": "Kombien will try again when you're back online.",
+  "updateLabel": "New version",
+  "updateTitle": "Kombien has been updated",
+  "updateBody": "Restart to use the latest version.",
+  "updateAction": "Restart",
+  "arrivedTitle": "Arrived at {place}?",
+  "@arrivedTitle": {
+    "placeholders": {
+      "place": {
+        "type": "String"
+      }
+    }
+  },
+  "arrivedBody": "What did you pay from {from}? One tap helps the next rider.",
+  "@arrivedBody": {
+    "placeholders": {
+      "from": {
+        "type": "String"
+      }
+    }
+  },
+  "arrivedOther": "Another amount",
+  "notNow": "Not now",
+  "arrivedThanksLabel": "Thank you!",
+  "arrivedThanksTitle": "Fare added",
+  "arrivedThanksBody": "Riders on this route will see it.",
+  "unlockedLabel": "You did that",
+  "unlockedTitle": "Fares unlocked",
+  "unlockedBody": "Your report helped show a fare range for {from} → {to}.",
+  "@unlockedBody": {
+    "placeholders": {
+      "from": {
+        "type": "String"
+      },
+      "to": {
+        "type": "String"
+      }
+    }
+  },
+  "cityMovedLabel": "New city",
+  "cityMovedTitle": "You're in {city}",
+  "@cityMovedTitle": {
+    "placeholders": {
+      "city": {
+        "type": "String"
+      }
+    }
+  },
+  "cityMovedBody": "Kombien now shows {city} places and fares.",
+  "@cityMovedBody": {
+    "placeholders": {
+      "city": {
+        "type": "String"
+      }
+    }
+  },
+  "undo": "Undo",
+  "release": "{mark} · version {version}",
+  "@release": {
+    "placeholders": {
+      "mark": {
+        "type": "String"
+      },
+      "version": {
+        "type": "String"
+      }
+    }
+  },
+  "notifications": "Notifications",
+  "pushUnlockedRow": "When my report unlocks fares",
+  "pushOfferLabel": "Stay in the loop",
+  "pushOfferTitle": "Want to know when it counts?",
+  "pushOfferBody": "Get a notification when your report unlocks fares for a route.",
+  "pushOfferAction": "Turn on",
+  "pushOnLabel": "Done",
+  "pushOnTitle": "Notifications on",
+  "pushOnBody": "At most one a day, never at night.",
+  "pushBlockedLabel": "Blocked",
+  "pushBlockedTitle": "Notifications are blocked",
+  "pushBlockedBody": "Allow them for Kombien in your browser or phone settings.",
+  "pushTestLabel": "Test",
+  "pushTestSentTitle": "Test notification sent",
+  "pushTestSentBody": "It should arrive in a few seconds.",
+  "pushTestFailTitle": "Couldn't send a test",
+  "placeMissingLink": "Not the place? Tell us",
+  "placeMissingAction": "Tell us about it",
+  "nearPlace": "Near {place}",
+  "@nearPlace": {
+    "placeholders": {
+      "place": {
+        "type": "String"
+      }
+    }
+  }
+}

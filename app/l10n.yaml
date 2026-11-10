@@ -1,0 +1,7 @@
+# Flutter's built-in localization (gen-l10n): strings live in lib/l10n/*.arb,
+# Dart is generated from them on `flutter pub get` / `flutter run`.
+arb-dir: lib/l10n
+template-arb-file: app_en.arb
+output-localization-file: app_localizations.dart
+output-class: AppLocalizations
+nullable-getter: false

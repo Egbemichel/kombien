@@ -9,6 +9,7 @@ Kombien's core function is collecting **reported fares**: a route (origin/destin
 - **No account or sign-in is required to contribute a fare report.**
 - Fare reports are treated as **anonymous by default** — no name, phone number, or other personal identifier is attached to a report.
 - A minimal technical identifier (e.g. a device- or session-scoped id) may be used strictly for abuse prevention (rate-limiting spam/fraudulent reports), never for building a profile of a person's travel history or identity.
+- **Searches that find nothing** are counted so the place list can be completed: the typed words, the city and the language, added into one count per place name. No identifier of any kind is sent with them, and anything that looks like a phone number, email address or link is dropped before it is sent (and checked again by the database). The count lives in `search_misses`, which riders can neither read nor write directly (see `supabase/migrations/20261111000600_search_misses.sql`).
 
 ## What Kombien does not do
 

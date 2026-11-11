@@ -70,6 +70,11 @@ class _KRoutePickerState extends State<KRoutePicker> {
   List<Landmark> _fromMatches = const [], _toMatches = const [];
   Landmark? _fromLm, _toLm;
   Timer? _debounce;
+
+  /// Waits a moment after "not found" shows before noting the search, so a
+  /// rider still typing counts once, for what they finally typed.
+  Timer? _missTimer;
+  static const _missSettle = Duration(milliseconds: 2500);
   int _searchRun = 0;
 
   /// The last search, for "See all" and Retry.
@@ -155,6 +160,7 @@ class _KRoutePickerState extends State<KRoutePicker> {
   void dispose() {
     _app?.locationAccess.removeListener(_accessChanged);
     _debounce?.cancel();
+    _missTimer?.cancel();
     _from.dispose();
     _fromFocus.dispose();
     _to.dispose();
@@ -190,6 +196,7 @@ class _KRoutePickerState extends State<KRoutePicker> {
 
   void _search(String query, {required bool start, bool more = false}) {
     _debounce?.cancel();
+    _missTimer?.cancel();
     setState(() {
       if (start) {
         _fromLm = null;
@@ -231,12 +238,20 @@ class _KRoutePickerState extends State<KRoutePicker> {
         _searchState = state;
         _retrying = false;
       });
+      if (state == _SearchState.noMatch) {
+        final app = KAppScope.of(context);
+        _missTimer = Timer(
+          _missSettle,
+          () => unawaited(app.logSearchMiss(query)),
+        );
+      }
     });
   }
 
   void _pick(Landmark l, {required bool start}) {
     ++_searchRun;
     _debounce?.cancel();
+    _missTimer?.cancel();
     (start ? _fromFocus : _toFocus).unfocus();
     setState(() {
       _searchState = _SearchState.idle;

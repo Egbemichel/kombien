@@ -613,6 +613,12 @@ class KAppState {
         _placeIds = Map<String, String>.from(jsonDecode(ids) as Map);
       }
       myCity.value = p.getString(_cityKey) ?? myCity.value;
+      // A remembered grant shows at once, so the icon doesn't sit red
+      // while the packs and the sync below finish loading.
+      if (!(p.getBool(_locationOffKey) ?? false) &&
+          (p.getBool(_locationGrantedKey) ?? false)) {
+        locationAccess.value = LocationAccess.granted;
+      }
     } catch (_) {
       // Keep defaults.
     }

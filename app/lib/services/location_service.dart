@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:geolocator/geolocator.dart';
 
 /// Whether Kombien may read the phone's location.
@@ -23,6 +24,19 @@ enum LocationAccess {
 /// Thin wrapper over geolocator, so screens never touch the plugin and
 /// tests can swap in a fake.
 class LocationService {
+  /// [browser] and [readFix] exist for tests; the defaults are the real
+  /// platform and the real position read.
+  LocationService({bool? browser, Future<void> Function()? readFix})
+    : _browser = browser ?? kIsWeb,
+      _readFix = readFix ?? _readPosition;
+
+  final bool _browser;
+  final Future<void> Function() _readFix;
+
+  static Future<void> _readPosition() => Geolocator.getCurrentPosition(
+    locationSettings: const LocationSettings(accuracy: LocationAccuracy.low),
+  );
+
   Future<LocationAccess> status() async {
     try {
       if (!await Geolocator.isLocationServiceEnabled()) {
@@ -38,6 +52,7 @@ class LocationService {
   /// location for good, opens the app's settings page instead.
   Future<LocationAccess> request() async {
     try {
+      if (_browser) return await _askBrowser();
       if (!await Geolocator.isLocationServiceEnabled()) {
         await Geolocator.openLocationSettings();
         return LocationAccess.serviceOff;
@@ -53,6 +68,26 @@ class LocationService {
       return _map(p);
     } catch (_) {
       return LocationAccess.denied;
+    }
+  }
+
+  /// Browsers have no "app settings" page or separate location service.
+  /// Asking means reading the position: the prompt only shows when the
+  /// browser holds no answer yet. Only a refusal counts as refused; a
+  /// missing fix (cold GPS, no signal indoors) means the permission is
+  /// fine and the position just isn't there yet.
+  ///
+  /// geolocator's own web requestPermission() reports every failure as
+  /// "denied for good". That is what turned a remembered grant red on
+  /// launch: the quiet re-check couldn't get a fix and wiped the grant.
+  Future<LocationAccess> _askBrowser() async {
+    try {
+      await _readFix();
+      return LocationAccess.granted;
+    } on PermissionDeniedException {
+      return LocationAccess.blocked;
+    } catch (_) {
+      return LocationAccess.granted;
     }
   }
 

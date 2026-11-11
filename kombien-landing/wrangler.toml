@@ -1,0 +1,18 @@
+# The Kombien landing page, served at egbemichel.tech/kombien (a path on the
+# portfolio's domain; the app itself stays at kombien.egbemichel.tech).
+#
+# Build and deploy by hand from this folder:
+#   bash scripts/build.sh && npx wrangler deploy
+name = "kombien-landing"
+compatibility_date = "2025-06-01"
+
+# Only this path: the portfolio keeps serving everything else.
+routes = [
+  { pattern = "egbemichel.tech/kombien", zone_name = "egbemichel.tech" },
+  { pattern = "egbemichel.tech/kombien/*", zone_name = "egbemichel.tech" },
+]
+
+[assets]
+directory = "./dist"
+# /kombien and /kombien/ both work.
+html_handling = "auto-trailing-slash"

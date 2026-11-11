@@ -1,0 +1,20 @@
+# Cloudflare Pages response headers.
+
+# Location only for Kombien itself; camera and microphone off for now.
+/*
+  X-Content-Type-Options: nosniff
+  Referrer-Policy: strict-origin-when-cross-origin
+  X-Frame-Options: DENY
+  Permissions-Policy: geolocation=(self), camera=(), microphone=()
+
+# Always check for a new release.
+/
+  Cache-Control: no-cache
+/index.html
+  Cache-Control: no-cache
+/sw.js
+  Cache-Control: no-cache
+/flutter_bootstrap.js
+  Cache-Control: no-cache
+/manifest.webmanifest
+  Cache-Control: no-cache

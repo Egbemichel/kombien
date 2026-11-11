@@ -1,0 +1,21 @@
+# kombien.egbemichel.tech: the Kombien PWA on Cloudflare (Workers static
+# assets, the current form of Cloudflare Pages).
+#
+# Deployed by .github/workflows/deploy-pwa.yml, or by hand from this folder:
+#   bash scripts/build.sh && npx wrangler deploy
+name = "kombien"
+compatibility_date = "2025-06-01"
+
+# The subdomain: Cloudflare creates the DNS record and certificate itself.
+# (Top-level keys must come before any [table] in TOML.)
+routes = [
+  { pattern = "kombien.egbemichel.tech", custom_domain = true },
+]
+
+[assets]
+directory = "./dist"
+# Any unknown path opens the app (it is a single-page app); real files such
+# as /privacy-policy/ are served as they are.
+not_found_handling = "single-page-application"
+# /privacy-policy and /privacy-policy/ both work.
+html_handling = "auto-trailing-slash"

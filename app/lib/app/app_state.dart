@@ -10,6 +10,7 @@ import '../data/fare_repository.dart';
 import '../data/landmark_repository.dart';
 import '../data/problem_repository.dart';
 import '../data/report_repository.dart';
+import '../data/search_miss_log.dart';
 import '../l10n/app_localizations.dart';
 import '../services/backend.dart';
 import 'release.dart';
@@ -26,6 +27,7 @@ class KAppState {
     FareRepository? fares,
     ReportRepository? reports,
     ProblemRepository? problems,
+    SearchMissLog? searchMisses,
     CityPacks? packs,
     PushClient? push,
   }) : this._(
@@ -36,6 +38,7 @@ class KAppState {
          fares: fares,
          reports: reports,
          problems: problems,
+         searchMisses: searchMisses,
        );
 
   KAppState._(
@@ -46,8 +49,10 @@ class KAppState {
     FareRepository? fares,
     ReportRepository? reports,
     ProblemRepository? problems,
+    SearchMissLog? searchMisses,
   }) : push = push ?? PushClient.standard(),
        problems = problems ?? ProblemRepository(),
+       searchMisses = searchMisses ?? SearchMissLog(),
        location = location ?? LocationService(),
        landmarks = landmarks ?? LandmarkRepository.standard(packs),
        fares = fares ?? FareRepository.standard(packs),
@@ -82,6 +87,17 @@ class KAppState {
 
   /// "Report a problem" messages: sent, or kept until they can be.
   final ProblemRepository problems;
+
+  /// Place searches that found nothing, kept (and sent, with no rider
+  /// identity) so the missing places can be found and added.
+  final SearchMissLog searchMisses;
+
+  /// A search that found nothing and was left alone: the typed words only.
+  Future<void> logSearchMiss(String typed) => searchMisses.record(
+    typed,
+    city: myCity.value,
+    locale: language.value.languageCode,
+  );
 
   Future<void> reportProblem(ProblemReport report) async {
     try {
@@ -272,6 +288,7 @@ class KAppState {
   Future<void> sync() async {
     await sendWaitingReports();
     await problems.sendWaiting().catchError((_) {});
+    await searchMisses.sendWaiting();
     await keepCityPack();
     await checkUnlocks();
   }

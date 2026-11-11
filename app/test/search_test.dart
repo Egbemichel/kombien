@@ -6,6 +6,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:kombien/app/app_state.dart';
 import 'package:kombien/data/city_pack.dart';
 import 'package:kombien/data/landmark_repository.dart';
+import 'package:kombien/data/search_miss_log.dart';
 import 'package:kombien/main.dart';
 import 'package:kombien/services/location_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -219,6 +220,70 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('Problem reported'), findsOneWidget);
     await tester.pumpAndSettle(const Duration(seconds: 5));
+  });
+
+  Future<(KAppState, List<Map<String, Object?>>)> missingPlaceApp(
+    WidgetTester tester,
+  ) async {
+    tester.view.physicalSize = const Size(402, 874);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+    final logged = <Map<String, Object?>>[];
+    final state = KAppState(
+      location: FakeLocation(current: LocationAccess.denied),
+      packs: _packs(),
+      landmarks: OfflineFirstLandmarkRepository(_packs(), _Remote(never: true)),
+      searchMisses: SearchMissLog(send: (row) async => logged.add(row)),
+    );
+    await state.load();
+    await tester.pumpWidget(KombienApp(showSplash: false, state: state));
+    await tester.pumpAndSettle();
+    return (state, logged);
+  }
+
+  testWidgets('a search that found nothing is noted once the rider has '
+      'stopped typing: the words, the city, the language', (tester) async {
+    final (_, logged) = await missingPlaceApp(tester);
+
+    await tester.enterText(find.byType(TextField).at(1), 'Sino Mart');
+    await tester.pumpAndSettle();
+    expect(logged, isEmpty); // not yet: they may still be typing
+    await tester.pump(const Duration(seconds: 3));
+    await tester.pumpAndSettle();
+    expect(logged, [
+      {'q': 'sino mart', 'city': 'Yaoundé', 'locale': 'en'},
+    ]);
+  });
+
+  testWidgets('typing on counts once, for what was finally typed', (
+    tester,
+  ) async {
+    final (_, logged) = await missingPlaceApp(tester);
+
+    await tester.enterText(find.byType(TextField).at(1), 'sino');
+    await tester.pumpAndSettle();
+    await tester.pump(const Duration(seconds: 1));
+    await tester.enterText(find.byType(TextField).at(1), 'sino mart');
+    await tester.pumpAndSettle();
+    await tester.pump(const Duration(seconds: 1));
+    await tester.enterText(
+      find.byType(TextField).at(1),
+      'sino mart elig-edzoa',
+    );
+    await tester.pumpAndSettle();
+    await tester.pump(const Duration(seconds: 3));
+    await tester.pumpAndSettle();
+    expect(logged.map((r) => r['q']), ['sino mart elig-edzoa']);
+  });
+
+  testWidgets('a search that finds a place is never noted', (tester) async {
+    final (_, logged) = await missingPlaceApp(tester);
+
+    await tester.enterText(find.byType(TextField).at(1), 'Carrefour Messassi');
+    await tester.pumpAndSettle();
+    await tester.pump(const Duration(seconds: 3));
+    await tester.pumpAndSettle();
+    expect(logged, isEmpty);
   });
 
   testWidgets('results that are not the place meant: "Not the place? Tell '

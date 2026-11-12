@@ -76,6 +76,83 @@ void main() {
     });
   });
 
+  group('adding a place yourself', () {
+    test('what is sent for each way of saying where it is', () {
+      expect(placeWhereParams(const PlaceWhere.gps(3.8871, 11.5342, 28)), {
+        'p_method': 'gps',
+        'p_lat': 3.8871,
+        'p_lng': 11.5342,
+        'p_accuracy_m': 28,
+      });
+      expect(placeWhereParams(const PlaceWhere.near('landmark-7', 200)), {
+        'p_method': 'near',
+        'p_anchor_id': 'landmark-7',
+        'p_anchor_m': 200,
+      });
+      expect(placeWhereParams(const PlaceWhere.unknown()), {
+        'p_method': 'none',
+      });
+    });
+
+    test('sends the city, the tidied name and where, and returns the place '
+        'to report against, which the phone then remembers', () async {
+      late (String, String, Map<String, Object?>) sent;
+      final places = RiderPlaces(
+        addPlaceOnServer: (city, label, where) async {
+          sent = (city, label, placeWhereParams(where));
+          return Landmark(id: 'landmark-9', name: label);
+        },
+      );
+      final landmark = await places.addPlace(
+        city: 'Yaoundé',
+        label: '  Sino   Mart ',
+        where: const PlaceWhere.unknown(),
+      );
+      expect(sent.$1, 'Yaoundé');
+      expect(sent.$2, 'Sino Mart');
+      expect(sent.$3, {'p_method': 'none'});
+      expect(landmark.id, 'landmark-9');
+      expect((await places.mine('sino mart')).single.id, 'landmark-9');
+    });
+
+    test('a name that is not a name never reaches the server', () async {
+      var asked = false;
+      final places = RiderPlaces(
+        addPlaceOnServer: (_, _, _) async {
+          asked = true;
+          return const Landmark(id: 'x', name: 'x');
+        },
+      );
+      for (final bad in ['a', '677 12 34 56', 'me@example.com', 'x' * 101]) {
+        await expectLater(
+          places.addPlace(
+            city: 'Yaoundé',
+            label: bad,
+            where: const PlaceWhere.unknown(),
+          ),
+          throwsArgumentError,
+        );
+      }
+      expect(asked, isFalse);
+    });
+
+    test('when the server refuses, the caller hears of it and nothing is '
+        'remembered', () async {
+      final places = RiderPlaces(
+        addPlaceOnServer: (_, _, _) async => throw StateError('refused'),
+      );
+      await expectLater(
+        places.addPlace(
+          city: 'Yaoundé',
+          label: 'Sino Mart',
+          where: const PlaceWhere.gps(3.88, 11.53, 20),
+        ),
+        throwsStateError,
+      );
+      expect(await places.mine('sino'), isEmpty);
+    });
+  });
+
   group('finding places other riders added', () {
     test('asks the server, and offline is simply nothing', () async {
       final found = RiderPlaces(

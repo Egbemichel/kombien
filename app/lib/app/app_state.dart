@@ -130,6 +130,15 @@ class KAppState {
         placeId: picked.placeId,
       );
 
+  /// Adds a place the rider described themselves (or returns the one Kombien
+  /// already has with that name) as a place they can report against. Throws
+  /// when it cannot (offline, too many today, a position the server refuses).
+  Future<Landmark> addRiderPlace(NewPlace place) => riderPlaces.addPlace(
+    city: myCity.value,
+    label: place.label,
+    where: place.where,
+  );
+
   /// A search that found nothing and was left alone: the typed words only.
   Future<void> logSearchMiss(String typed) => searchMisses.record(
     typed,

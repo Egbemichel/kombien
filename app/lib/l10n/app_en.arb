@@ -335,5 +335,39 @@
   },
   "addPlaceHint": "The name riders use",
   "addPlaceAction": "Use this place",
-  "addPlaceFailed": "Couldn't add that place. Check your connection and try again"
+  "addPlaceFailed": "Couldn't add that place. Check your connection and try again",
+  "addPlaceYourself": "Add this place",
+  "addYourselfLink": "Not there? Add it yourself",
+  "newPlaceTitle": "Add a place",
+  "newPlaceNameHint": "What riders call it",
+  "newPlaceWhereTitle": "Where is it?",
+  "whereHere": "I'm here now",
+  "whereNear": "It's near a place I know",
+  "whereUnknown": "I'm not sure where",
+  "gpsFinding": "Finding your position…",
+  "gpsFound": "Got it. Accurate to about {m} m",
+  "@gpsFound": {
+    "placeholders": {
+      "m": {
+        "type": "int"
+      }
+    }
+  },
+  "gpsWeak": "Signal too weak (about {m} m off). Go outside, or choose near a place",
+  "@gpsWeak": {
+    "placeholders": {
+      "m": {
+        "type": "int"
+      }
+    }
+  },
+  "gpsOff": "Can't see your position. Allow location, or choose near a place",
+  "gpsRetry": "Try again",
+  "nearSearchHint": "Search a place you know nearby",
+  "nearHowFar": "How far is it from there?",
+  "nearNext": "Right next to it",
+  "near200": "About 200 m",
+  "near500": "About 500 m",
+  "unknownNote": "Other riders will find it by its name. It won't show up by distance.",
+  "newPlaceAction": "Add this place"
 }

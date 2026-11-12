@@ -1363,6 +1363,126 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Couldn\'t add that place. Check your connection and try again'**
   String get addPlaceFailed;
+
+  /// No description provided for @addPlaceYourself.
+  ///
+  /// In en, this message translates to:
+  /// **'Add this place'**
+  String get addPlaceYourself;
+
+  /// No description provided for @addYourselfLink.
+  ///
+  /// In en, this message translates to:
+  /// **'Not there? Add it yourself'**
+  String get addYourselfLink;
+
+  /// No description provided for @newPlaceTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Add a place'**
+  String get newPlaceTitle;
+
+  /// No description provided for @newPlaceNameHint.
+  ///
+  /// In en, this message translates to:
+  /// **'What riders call it'**
+  String get newPlaceNameHint;
+
+  /// No description provided for @newPlaceWhereTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Where is it?'**
+  String get newPlaceWhereTitle;
+
+  /// No description provided for @whereHere.
+  ///
+  /// In en, this message translates to:
+  /// **'I\'m here now'**
+  String get whereHere;
+
+  /// No description provided for @whereNear.
+  ///
+  /// In en, this message translates to:
+  /// **'It\'s near a place I know'**
+  String get whereNear;
+
+  /// No description provided for @whereUnknown.
+  ///
+  /// In en, this message translates to:
+  /// **'I\'m not sure where'**
+  String get whereUnknown;
+
+  /// No description provided for @gpsFinding.
+  ///
+  /// In en, this message translates to:
+  /// **'Finding your position…'**
+  String get gpsFinding;
+
+  /// No description provided for @gpsFound.
+  ///
+  /// In en, this message translates to:
+  /// **'Got it. Accurate to about {m} m'**
+  String gpsFound(int m);
+
+  /// No description provided for @gpsWeak.
+  ///
+  /// In en, this message translates to:
+  /// **'Signal too weak (about {m} m off). Go outside, or choose near a place'**
+  String gpsWeak(int m);
+
+  /// No description provided for @gpsOff.
+  ///
+  /// In en, this message translates to:
+  /// **'Can\'t see your position. Allow location, or choose near a place'**
+  String get gpsOff;
+
+  /// No description provided for @gpsRetry.
+  ///
+  /// In en, this message translates to:
+  /// **'Try again'**
+  String get gpsRetry;
+
+  /// No description provided for @nearSearchHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Search a place you know nearby'**
+  String get nearSearchHint;
+
+  /// No description provided for @nearHowFar.
+  ///
+  /// In en, this message translates to:
+  /// **'How far is it from there?'**
+  String get nearHowFar;
+
+  /// No description provided for @nearNext.
+  ///
+  /// In en, this message translates to:
+  /// **'Right next to it'**
+  String get nearNext;
+
+  /// No description provided for @near200.
+  ///
+  /// In en, this message translates to:
+  /// **'About 200 m'**
+  String get near200;
+
+  /// No description provided for @near500.
+  ///
+  /// In en, this message translates to:
+  /// **'About 500 m'**
+  String get near500;
+
+  /// No description provided for @unknownNote.
+  ///
+  /// In en, this message translates to:
+  /// **'Other riders will find it by its name. It won\'t show up by distance.'**
+  String get unknownNote;
+
+  /// No description provided for @newPlaceAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Add this place'**
+  String get newPlaceAction;
 }
 
 class _AppLocalizationsDelegate

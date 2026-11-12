@@ -5,6 +5,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 
 import '../app/app_state.dart';
 import '../components/k_add_place_sheet.dart';
+import '../components/k_new_place_sheet.dart';
 import '../components/k_cards.dart';
 import '../components/k_controls.dart';
 import '../components/k_layout.dart';
@@ -307,6 +308,25 @@ class _KRoutePickerState extends State<KRoutePicker> {
     }
   }
 
+  /// The rider adds the place themselves: what it is called and how they know
+  /// where it is. Saved as a place they (and everyone after them) can report
+  /// against, or the one Kombien already has with that name.
+  Future<void> _addYourself() async {
+    final start = _googleStart && _google.isNotEmpty
+        ? _googleStart
+        : _lastStart;
+    final place = await showNewPlaceSheet(context, typed: _lastQuery);
+    if (place == null || !mounted) return;
+    try {
+      final landmark = await KAppScope.of(context).addRiderPlace(place);
+      if (!mounted) return;
+      setState(() => _google = const []);
+      _pick(landmark, start: start);
+    } catch (_) {
+      if (mounted) setState(() => _addFailed = true);
+    }
+  }
+
   void _pick(Landmark l, {required bool start}) {
     ++_searchRun;
     _debounce?.cancel();
@@ -450,6 +470,13 @@ class _KRoutePickerState extends State<KRoutePicker> {
           padding: const EdgeInsets.only(top: 10, left: 4),
           child: Semantics(
             button: true,
+            child: KSkip(t.addYourselfLink, onTap: _addYourself),
+          ),
+        ),
+        Padding(
+          padding: const EdgeInsets.only(top: 8, left: 4),
+          child: Semantics(
+            button: true,
             child: KSkip(
               t.placeMissingLink,
               onTap: () => _reportMissing(_lastQuery),
@@ -459,6 +486,15 @@ class _KRoutePickerState extends State<KRoutePicker> {
       ],
     );
   }
+
+  /// The "couldn't add it" note, under whichever not-found card is showing.
+  Widget _addFailedNote() => Padding(
+    padding: const EdgeInsets.only(top: 10, left: 4),
+    child: Text(
+      context.l10n.addPlaceFailed,
+      style: KText.bodySmall.dm(color: KColors.danger),
+    ),
+  );
 
   /// No match / offline, under the fields.
   Widget _searchCard() {
@@ -476,16 +512,24 @@ class _KRoutePickerState extends State<KRoutePicker> {
       _SearchState.noMatch => Padding(
         key: const ValueKey('noMatch'),
         padding: const EdgeInsets.only(top: 24),
-        child: KPromptCard(
-          compact: true,
-          stack: const KStickerStack(
-            left: 'assets/illustrations/reunification-monument.webp',
-            middle: 'assets/illustrations/mountain-landmark.webp',
-            right: 'assets/illustrations/magnifying-glass.webp',
-          ),
-          title: t.noMatchTitle,
-          action: t.placeMissingAction,
-          onAction: () => _reportMissing(_lastQuery),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            KPromptCard(
+              compact: true,
+              stack: const KStickerStack(
+                left: 'assets/illustrations/reunification-monument.webp',
+                middle: 'assets/illustrations/mountain-landmark.webp',
+                right: 'assets/illustrations/magnifying-glass.webp',
+              ),
+              title: t.noMatchTitle,
+              action: t.addPlaceYourself,
+              onAction: _addYourself,
+              skip: t.placeMissingAction,
+              onSkip: () => _reportMissing(_lastQuery),
+            ),
+            if (_addFailed) _addFailedNote(),
+          ],
         ),
       ),
       _SearchState.offline => Padding(

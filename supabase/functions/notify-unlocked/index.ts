@@ -12,7 +12,16 @@
 // Callers need the app's key (Supabase checks the JWT); even so, a call can
 // only send what the data already justifies, once.
 //
-// Secrets: VAPID_PUBLIC_KEY, VAPID_PRIVATE_KEY (supabase secrets set).
+// POST { job: "reminders" }              (scheduled, 08:30 Cameroon time daily)
+//   The morning nudge: every phone with the 'reminders' topic that has not
+//   had one for 3 days (and none today), never in quiet hours.
+// POST { announce: "update", key }       (after a release deploys)
+//   "Kombien has been updated", once per key, to phones with the 'updates'
+//   topic; held until the morning when it is quiet hours.
+//   Both need the x-notify-secret header (NOTIFY_SECRET).
+//
+// Secrets: VAPID_PUBLIC_KEY, VAPID_PRIVATE_KEY, NOTIFY_SECRET
+// (supabase secrets set).
 // SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY are provided by Supabase.
 
 import { createClient } from "npm:@supabase/supabase-js@2";
@@ -58,6 +67,52 @@ const text = {
   }),
 };
 
+const REMINDER_EVERY_HOURS = 66; // "every 3 days", with room for a late run
+
+// A morning nudge: a reason to open Kombien, never a scolding. Rotates every
+// 3 days; the same text goes to everyone on the same day.
+const reminders = {
+  en: [
+    {
+      title: "Heading out today?",
+      body: "See what locals paid for your route before you hop in.",
+    },
+    {
+      title: "Paid for a ride lately?",
+      body: "Add your fare in a few taps. It helps the next rider.",
+    },
+    {
+      title: "Know the range first",
+      body: "Open Kombien before you propose a price.",
+    },
+  ],
+  fr: [
+    {
+      title: "Tu sors aujourd'hui ?",
+      body: "Vois ce que les gens ont payé sur ton trajet avant de monter.",
+    },
+    {
+      title: "Un trajet récemment ?",
+      body: "Ajoute ton tarif en quelques secondes. Ça aide le prochain passager.",
+    },
+    {
+      title: "Connais la fourchette",
+      body: "Ouvre Kombien avant de proposer un prix.",
+    },
+  ],
+};
+
+const updated = {
+  en: {
+    title: "Kombien has been updated",
+    body: "A new version is ready. Open the app to get it.",
+  },
+  fr: {
+    title: "Kombien a été mis à jour",
+    body: "Une nouvelle version est prête. Ouvre l'app pour l'avoir.",
+  },
+};
+
 // Cameroon is UTC+1 all year.
 const wat = (d: Date) => new Date(d.getTime() + 60 * 60 * 1000);
 const watDay = (d: Date) => wat(d).toISOString().slice(0, 10);
@@ -78,6 +133,20 @@ function tomorrowMorning(now: Date): Date {
   next.setUTCHours(6, 0, 0, 0);
   next.setTime(next.getTime() + (next <= now ? DAY : 0));
   return next;
+}
+
+/** The scheduler and the deploy prove themselves with a shared secret. */
+function trusted(req: Request): boolean {
+  const secret = Deno.env.get("NOTIFY_SECRET");
+  const given = req.headers.get("x-notify-secret") ?? "";
+  if (!secret || secret.length < 20 || given.length !== secret.length) {
+    return false;
+  }
+  let diff = 0; // constant time
+  for (let i = 0; i < secret.length; i++) {
+    diff |= secret.charCodeAt(i) ^ given.charCodeAt(i);
+  }
+  return diff === 0;
 }
 
 async function caller(req: Request): Promise<string | null> {
@@ -202,6 +271,77 @@ async function flush() {
   return sent;
 }
 
+/** The morning nudge, to every phone that is due. Returns how many got it. */
+async function sendReminders(): Promise<number> {
+  const now = new Date();
+  if (allowedFrom(now) > now) return 0; // quiet hours
+  if (!vapid()) return 0;
+  const due = new Date(now.getTime() - REMINDER_EVERY_HOURS * 3600_000)
+    .toISOString();
+  const { data: subs } = await db
+    .from("push_subscriptions")
+    .select("id, endpoint, p256dh, auth, locale, last_sent_at")
+    .contains("topics", ["reminders"])
+    .lte("last_reminder_at", due)
+    .limit(500);
+  const today = watDay(now);
+  const slot = Math.floor(now.getTime() / DAY / 3);
+  let sent = 0;
+  for (const s of subs ?? []) {
+    if (s.last_sent_at && watDay(new Date(s.last_sent_at)) === today) continue;
+    const set = s.locale === "fr" ? reminders.fr : reminders.en;
+    const msg = set[slot % set.length];
+    try {
+      await webpush.sendNotification(
+        { endpoint: s.endpoint, keys: { p256dh: s.p256dh, auth: s.auth } },
+        JSON.stringify({ ...msg, tag: "reminder", url: "/" }),
+        { TTL: 6 * 3600 }, // stale by the afternoon
+      );
+      sent++;
+      await db.from("push_subscriptions")
+        .update({
+          last_reminder_at: now.toISOString(),
+          last_sent_at: now.toISOString(),
+        })
+        .eq("id", s.id);
+    } catch (e) {
+      const status = (e as { statusCode?: number }).statusCode;
+      if (status === 404 || status === 410) {
+        await db.from("push_subscriptions").delete().eq("id", s.id);
+      }
+    }
+  }
+  return sent;
+}
+
+/** "Kombien has been updated", once per [key], to phones that opted in. */
+async function announceUpdate(key: string): Promise<number> {
+  if (!/^[A-Za-z0-9._-]{1,64}$/.test(key)) return 0;
+  // No second announcement within 12 hours, whatever the key.
+  const recent = new Date(Date.now() - 12 * 3600_000).toISOString();
+  const { count } = await db.from("push_announcements")
+    .select("key", { count: "exact", head: true })
+    .eq("kind", "update").gt("created_at", recent);
+  if ((count ?? 0) > 0) return 0;
+  const { error } = await db.from("push_announcements")
+    .insert({ kind: "update", key });
+  if (error) return 0; // already announced
+  const { data: subs } = await db.from("push_subscriptions")
+    .select("id, locale").contains("topics", ["updates"]);
+  if (!subs || subs.length === 0) return 0;
+  const at = allowedFrom(new Date()).toISOString();
+  await db.from("push_outbox").insert(subs.map((s) => ({
+    subscription_id: s.id,
+    send_after: at,
+    payload: {
+      ...(s.locale === "fr" ? updated.fr : updated.en),
+      tag: "update",
+      url: "/",
+    },
+  })));
+  return subs.length;
+}
+
 /**
  * A test notification to the caller's own phone(s), at once (quiet hours
  * and the daily limit don't apply), at most 3 an hour. Settings: a long
@@ -270,6 +410,18 @@ Deno.serve(async (req) => {
     return Response.json({ test: await sendTest(await caller(req)) }, {
       headers: cors,
     });
+  }
+  if (body.job === "reminders" || body.announce === "update") {
+    if (!trusted(req)) {
+      return new Response("not allowed", { status: 403, headers: cors });
+    }
+    if (body.job === "reminders") {
+      return Response.json({ reminded: await sendReminders() }, {
+        headers: cors,
+      });
+    }
+    const announced = await announceUpdate(String(body.key ?? ""));
+    return Response.json({ announced, sent: await flush() }, { headers: cors });
   }
   let queued = 0;
   if (typeof body.from_id === "string" && typeof body.to_id === "string") {

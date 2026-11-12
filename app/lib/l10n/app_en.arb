@@ -299,10 +299,10 @@
     }
   },
   "notifications": "Notifications",
-  "pushUnlockedRow": "When my report unlocks fares",
+  "pushUnlockedRow": "Fares unlocked, updates, morning reminders",
   "pushOfferLabel": "Stay in the loop",
   "pushOfferTitle": "Want to know when it counts?",
-  "pushOfferBody": "Get a notification when your report unlocks fares for a route.",
+  "pushOfferBody": "Hear when your report unlocks fares, when Kombien is updated, and a morning reminder every few days.",
   "pushOfferAction": "Turn on",
   "pushOnLabel": "Done",
   "pushOnTitle": "Notifications on",

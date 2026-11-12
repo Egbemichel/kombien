@@ -645,7 +645,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get notifications => 'Notifications';
 
   @override
-  String get pushUnlockedRow => 'When my report unlocks fares';
+  String get pushUnlockedRow => 'Fares unlocked, updates, morning reminders';
 
   @override
   String get pushOfferLabel => 'Stay in the loop';
@@ -655,7 +655,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get pushOfferBody =>
-      'Get a notification when your report unlocks fares for a route.';
+      'Hear when your report unlocks fares, when Kombien is updated, and a morning reminder every few days.';
 
   @override
   String get pushOfferAction => 'Turn on';

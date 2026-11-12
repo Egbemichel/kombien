@@ -644,7 +644,8 @@ class AppLocalizationsFr extends AppLocalizations {
   String get notifications => 'Notifications';
 
   @override
-  String get pushUnlockedRow => 'Quand mon signalement débloque des tarifs';
+  String get pushUnlockedRow =>
+      'Tarifs débloqués, mises à jour, rappels du matin';
 
   @override
   String get pushOfferLabel => 'Restez informé';
@@ -654,7 +655,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get pushOfferBody =>
-      'Recevez une notification quand votre signalement débloque les tarifs d\'un trajet.';
+      'Sachez quand votre signalement débloque des tarifs, quand Kombien est mis à jour, et recevez un rappel le matin tous les quelques jours.';
 
   @override
   String get pushOfferAction => 'Activer';

@@ -216,7 +216,7 @@ void main() {
       await tester.pumpWidget(KombienApp(showSplash: false, state: state));
       await tester.pumpAndSettle();
       expect(
-        find.text('When my report unlocks fares'),
+        find.text('Fares unlocked, updates, morning reminders'),
         supported ? findsOneWidget : findsNothing,
       );
     });

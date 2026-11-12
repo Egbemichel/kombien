@@ -1229,7 +1229,7 @@ abstract class AppLocalizations {
   /// No description provided for @pushUnlockedRow.
   ///
   /// In en, this message translates to:
-  /// **'When my report unlocks fares'**
+  /// **'Fares unlocked, updates, morning reminders'**
   String get pushUnlockedRow;
 
   /// No description provided for @pushOfferLabel.
@@ -1247,7 +1247,7 @@ abstract class AppLocalizations {
   /// No description provided for @pushOfferBody.
   ///
   /// In en, this message translates to:
-  /// **'Get a notification when your report unlocks fares for a route.'**
+  /// **'Hear when your report unlocks fares, when Kombien is updated, and a morning reminder every few days.'**
   String get pushOfferBody;
 
   /// No description provided for @pushOfferAction.

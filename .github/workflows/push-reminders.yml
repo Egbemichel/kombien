@@ -1,0 +1,36 @@
+# The morning nudge for riders who turned notifications on: every day at
+# 08:30 Cameroon time (07:30 UTC) this asks the notify-unlocked function to
+# send "Heading out today?"-style reminders. The function itself sends one
+# to each phone only every 3 days, never in quiet hours, and never a second
+# notification on the same day.
+#
+# Needs repository secrets: SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY (already
+# used by the deploy) and NOTIFY_SECRET (the same value as the function's
+# NOTIFY_SECRET secret). See docs/setup/push-reminders.md.
+name: Push reminders
+
+on:
+  schedule:
+    - cron: "30 7 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  remind:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Ask the function to send what is due
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          KEY: ${{ secrets.SUPABASE_PUBLISHABLE_KEY }}
+          NOTIFY_SECRET: ${{ secrets.NOTIFY_SECRET }}
+        run: |
+          test -n "$NOTIFY_SECRET" || { echo "NOTIFY_SECRET is not set"; exit 1; }
+          curl -sS --fail-with-body --retry 3 -X POST \
+            "$SUPABASE_URL/functions/v1/notify-unlocked" \
+            -H "apikey: $KEY" -H "Authorization: Bearer $KEY" \
+            -H "x-notify-secret: $NOTIFY_SECRET" \
+            -H "Content-Type: application/json" -d '{"job":"reminders"}'

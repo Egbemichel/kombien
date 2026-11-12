@@ -9,12 +9,13 @@ Kombien's core function is collecting **reported fares**: a route (origin/destin
 - **No account or sign-in is required to contribute a fare report.**
 - Fare reports are treated as **anonymous by default** — no name, phone number, or other personal identifier is attached to a report.
 - A minimal technical identifier (e.g. a device- or session-scoped id) may be used strictly for abuse prevention (rate-limiting spam/fraudulent reports), never for building a profile of a person's travel history or identity.
+- **Places found through Google:** when a rider picks a Google suggestion, Kombien stores Google's place ID (which Google allows) and the name the rider gave it — never Google's own name, address or coordinates. See [docs/setup/google-places.md](docs/setup/google-places.md).
 - **Searches that find nothing** are counted so the place list can be completed: the typed words, the city and the language, added into one count per place name. No identifier of any kind is sent with them, and anything that looks like a phone number, email address or link is dropped before it is sent (and checked again by the database). The count lives in `search_misses`, which riders can neither read nor write directly (see `supabase/migrations/20261111000600_search_misses.sql`).
 
 ## What Kombien does not do
 
 - Does not require real-name identity to use the core product.
-- Does not sell or share user data with third parties.
+- Does not sell or share user data with third parties. The one exception is by design and limited: when a place isn't in Kombien, the typed place name is sent to Google Places to get suggestions (Google also sees the request's IP address), and only when a Google key is configured. No Kombien identifier is sent.
 - Does not attempt to re-identify anonymous fare reports.
 - Does not use fare-report data for anything beyond showing aggregated, community fare information back to users.
 

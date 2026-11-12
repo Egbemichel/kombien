@@ -1327,6 +1327,42 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Near {place}'**
   String nearPlace(String place);
+
+  /// No description provided for @googleSuggestionsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Not in Kombien yet. Is it one of these?'**
+  String get googleSuggestionsTitle;
+
+  /// No description provided for @addPlaceTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Save this place as'**
+  String get addPlaceTitle;
+
+  /// No description provided for @addPlaceSuggested.
+  ///
+  /// In en, this message translates to:
+  /// **'Google suggested: {name}'**
+  String addPlaceSuggested(String name);
+
+  /// No description provided for @addPlaceHint.
+  ///
+  /// In en, this message translates to:
+  /// **'The name riders use'**
+  String get addPlaceHint;
+
+  /// No description provided for @addPlaceAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Use this place'**
+  String get addPlaceAction;
+
+  /// No description provided for @addPlaceFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t add that place. Check your connection and try again'**
+  String get addPlaceFailed;
 }
 
 class _AppLocalizationsDelegate

@@ -204,5 +204,11 @@
   "pushTestFailTitle": "Impossible d'envoyer un test",
   "placeMissingLink": "Pas le bon lieu ? Dites-le-nous",
   "placeMissingAction": "Signaler ce lieu",
-  "nearPlace": "Près de {place}"
+  "nearPlace": "Près de {place}",
+  "googleSuggestionsTitle": "Pas encore dans Kombien. C'est l'un de ceux-ci ?",
+  "addPlaceTitle": "Enregistrer ce lieu sous le nom",
+  "addPlaceSuggested": "Suggestion de Google : {name}",
+  "addPlaceHint": "Le nom que les gens utilisent",
+  "addPlaceAction": "Utiliser ce lieu",
+  "addPlaceFailed": "Impossible d'ajouter ce lieu. Vérifie ta connexion et réessaie"
 }

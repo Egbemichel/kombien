@@ -322,5 +322,18 @@
         "type": "String"
       }
     }
-  }
+  },
+  "googleSuggestionsTitle": "Not in Kombien yet. Is it one of these?",
+  "addPlaceTitle": "Save this place as",
+  "addPlaceSuggested": "Google suggested: {name}",
+  "@addPlaceSuggested": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "addPlaceHint": "The name riders use",
+  "addPlaceAction": "Use this place",
+  "addPlaceFailed": "Couldn't add that place. Check your connection and try again"
 }

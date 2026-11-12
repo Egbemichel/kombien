@@ -695,4 +695,26 @@ class AppLocalizationsEn extends AppLocalizations {
   String nearPlace(String place) {
     return 'Near $place';
   }
+
+  @override
+  String get googleSuggestionsTitle =>
+      'Not in Kombien yet. Is it one of these?';
+
+  @override
+  String get addPlaceTitle => 'Save this place as';
+
+  @override
+  String addPlaceSuggested(String name) {
+    return 'Google suggested: $name';
+  }
+
+  @override
+  String get addPlaceHint => 'The name riders use';
+
+  @override
+  String get addPlaceAction => 'Use this place';
+
+  @override
+  String get addPlaceFailed =>
+      'Couldn\'t add that place. Check your connection and try again';
 }

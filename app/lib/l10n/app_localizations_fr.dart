@@ -694,4 +694,26 @@ class AppLocalizationsFr extends AppLocalizations {
   String nearPlace(String place) {
     return 'Près de $place';
   }
+
+  @override
+  String get googleSuggestionsTitle =>
+      'Pas encore dans Kombien. C\'est l\'un de ceux-ci ?';
+
+  @override
+  String get addPlaceTitle => 'Enregistrer ce lieu sous le nom';
+
+  @override
+  String addPlaceSuggested(String name) {
+    return 'Suggestion de Google : $name';
+  }
+
+  @override
+  String get addPlaceHint => 'Le nom que les gens utilisent';
+
+  @override
+  String get addPlaceAction => 'Utiliser ce lieu';
+
+  @override
+  String get addPlaceFailed =>
+      'Impossible d\'ajouter ce lieu. Vérifie ta connexion et réessaie';
 }

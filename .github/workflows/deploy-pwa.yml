@@ -9,6 +9,8 @@ name: Deploy PWA
 #   CLOUDFLARE_ACCOUNT_ID  the Cloudflare account id
 # Optional (real backend; without them the site runs on sample data):
 #   SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY
+# Optional (Google place suggestions; without it the app never asks Google):
+#   GOOGLE_PLACES_KEY, see docs/setup/google-places.md
 
 on:
   push:
@@ -47,6 +49,7 @@ jobs:
         env:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_PUBLISHABLE_KEY: ${{ secrets.SUPABASE_PUBLISHABLE_KEY }}
+          GOOGLE_PLACES_KEY: ${{ secrets.GOOGLE_PLACES_KEY }}
         run: bash kombien-pwa/scripts/build.sh
 
       - name: Deploy to Cloudflare

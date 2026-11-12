@@ -3,9 +3,13 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:http/http.dart' as http;
+import 'package:http/testing.dart';
 import 'package:kombien/app/app_state.dart';
 import 'package:kombien/data/city_pack.dart';
+import 'package:kombien/data/google_places.dart';
 import 'package:kombien/data/landmark_repository.dart';
+import 'package:kombien/data/rider_places.dart';
 import 'package:kombien/data/search_miss_log.dart';
 import 'package:kombien/main.dart';
 import 'package:kombien/services/location_service.dart';
@@ -223,8 +227,10 @@ void main() {
   });
 
   Future<(KAppState, List<Map<String, Object?>>)> missingPlaceApp(
-    WidgetTester tester,
-  ) async {
+    WidgetTester tester, {
+    GooglePlaces? google,
+    RiderPlaces? riders,
+  }) async {
     tester.view.physicalSize = const Size(402, 874);
     tester.view.devicePixelRatio = 1;
     addTearDown(tester.view.reset);
@@ -234,12 +240,156 @@ void main() {
       packs: _packs(),
       landmarks: OfflineFirstLandmarkRepository(_packs(), _Remote(never: true)),
       searchMisses: SearchMissLog(send: (row) async => logged.add(row)),
+      googlePlaces: google,
+      riderPlaces: riders,
     );
     await state.load();
     await tester.pumpWidget(KombienApp(showSplash: false, state: state));
     await tester.pumpAndSettle();
     return (state, logged);
   }
+
+  // ------------------------------------------------ a place Google knows
+
+  const sinoMart =
+      '{"suggestions": [{"placePrediction": {"placeId": "ChIJsinomart0001", '
+      '"text": {"text": "Sino Mart, Elig-Edzoa, Yaoundé"}, '
+      '"structuredFormat": {"mainText": {"text": "Sino Mart"}, '
+      '"secondaryText": {"text": "Elig-Edzoa, Yaoundé"}}}}]}';
+
+  testWidgets('a place Kombien lacks: Google\'s suggestions appear with '
+      'Google\'s credit; picking one asks what to call it, saves it as the '
+      'rider\'s own words with only the Google place ID, and uses it', (
+    tester,
+  ) async {
+    final asked = <http.Request>[];
+    final google = GooglePlaces(
+      key: 'test-key',
+      client: MockClient((request) async {
+        asked.add(request);
+        return http.Response(sinoMart, 200);
+      }),
+    );
+    (String, String, String)? saved;
+    final riders = RiderPlaces(
+      findOnServer: (_, _) async => const [],
+      addOnServer: (city, label, placeId) async {
+        saved = (city, label, placeId);
+        return Landmark(id: 'landmark-sino', name: label);
+      },
+    );
+    await missingPlaceApp(tester, google: google, riders: riders);
+
+    await tester.enterText(find.byType(TextField).at(1), 'sino mart');
+    await tester.pump(const Duration(milliseconds: 300));
+    expect(asked, isEmpty); // not while they are still typing
+    await tester.pump(const Duration(seconds: 1));
+    await tester.pumpAndSettle();
+
+    expect(asked, hasLength(1));
+    expect(
+      find.text('Not in Kombien yet. Is it one of these?'),
+      findsOneWidget,
+    );
+    expect(find.text('Sino Mart'), findsOneWidget);
+    expect(find.text('Elig-Edzoa, Yaoundé'), findsOneWidget);
+    expect(find.text('Google Maps'), findsOneWidget); // required credit
+
+    await tester.tapAt(tester.getCenter(find.text('Sino Mart')));
+    await tester.pumpAndSettle();
+
+    // Asks what to call it: starts as what they typed, Google's name shown
+    // only for reference.
+    expect(find.text('Save this place as'), findsOneWidget);
+    expect(find.text('Google suggested: Sino Mart'), findsOneWidget);
+    final nameField = find.descendant(
+      of: find.byType(BottomSheet),
+      matching: find.byType(TextField),
+    );
+    expect(tester.widget<TextField>(nameField).controller!.text, 'sino mart');
+    await tester.enterText(nameField, 'Sino Mart Elig-Edzoa');
+    await tester.pump();
+    await tester.tap(find.text('Use this place'));
+    await tester.pumpAndSettle();
+
+    // What was saved: the city, the rider's words, and the Google place ID.
+    expect(saved, ('Yaoundé', 'Sino Mart Elig-Edzoa', 'ChIJsinomart0001'));
+    // The place is now chosen like any other.
+    expect(
+      find.widgetWithText(TextField, 'Sino Mart Elig-Edzoa'),
+      findsOneWidget,
+    );
+    expect(find.text('Not in Kombien yet. Is it one of these?'), findsNothing);
+  });
+
+  testWidgets('a place another rider already added is found by name, with no '
+      'Google involved', (tester) async {
+    var googleAsked = 0;
+    final google = GooglePlaces(
+      key: 'test-key',
+      client: MockClient((_) async {
+        googleAsked++;
+        return http.Response(sinoMart, 200);
+      }),
+    );
+    final riders = RiderPlaces(
+      findOnServer: (query, city) async => [
+        const Landmark(id: 'landmark-cinemat', name: 'Cinemat'),
+      ],
+    );
+    await missingPlaceApp(tester, google: google, riders: riders);
+
+    await tester.enterText(find.byType(TextField).at(1), 'cinemat');
+    await tester.pumpAndSettle();
+    await tester.pump(const Duration(seconds: 1));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Cinemat'), findsWidgets); // offered like any result
+    expect(find.text('Not in Kombien yet. Is it one of these?'), findsNothing);
+    expect(googleAsked, 0);
+  });
+
+  testWidgets('when saving the place fails the rider is told, and the '
+      'suggestions stay', (tester) async {
+    final google = GooglePlaces(
+      key: 'test-key',
+      client: MockClient((_) async => http.Response(sinoMart, 200)),
+    );
+    final riders = RiderPlaces(
+      findOnServer: (_, _) async => const [],
+      addOnServer: (_, _, _) async => throw StateError('offline'),
+    );
+    await missingPlaceApp(tester, google: google, riders: riders);
+
+    await tester.enterText(find.byType(TextField).at(1), 'sino mart');
+    await tester.pumpAndSettle();
+    await tester.pump(const Duration(seconds: 1));
+    await tester.pumpAndSettle();
+    await tester.tapAt(tester.getCenter(find.text('Sino Mart')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Use this place'));
+    await tester.pumpAndSettle();
+
+    expect(
+      find.text("Couldn't add that place. Check your connection and try again"),
+      findsOneWidget,
+    );
+    expect(find.text('Sino Mart'), findsOneWidget);
+  });
+
+  testWidgets('without a Google key nothing changes: the not-found card, '
+      'and nothing is asked', (tester) async {
+    await missingPlaceApp(tester); // default GooglePlaces: no key
+    await tester.enterText(find.byType(TextField).at(1), 'sino mart');
+    await tester.pumpAndSettle();
+    await tester.pump(const Duration(seconds: 1));
+    await tester.pumpAndSettle();
+    expect(
+      find.text("Couldn't find that place. Try a nearby landmark instead"),
+      findsOneWidget,
+    );
+    expect(find.text('Google Maps'), findsNothing);
+  });
 
   testWidgets('a search that found nothing is noted once the rider has '
       'stopped typing: the words, the city, the language', (tester) async {

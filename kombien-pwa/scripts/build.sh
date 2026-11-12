@@ -12,6 +12,7 @@
 #
 # Optional, for the real backend (without them the app runs on sample data):
 #   SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY
+# Optional, for Google place suggestions: GOOGLE_PLACES_KEY
 set -euo pipefail
 # Git Bash on Windows would rewrite "/" into a Windows path.
 export MSYS_NO_PATHCONV=1
@@ -37,6 +38,14 @@ if [[ -n "${SUPABASE_URL:-}" && -n "${SUPABASE_PUBLISHABLE_KEY:-}" ]]; then
   echo "Backend: Supabase"
 else
   echo "Backend: none (sample data)"
+fi
+# Optional: Google place suggestions for places Kombien does not have yet (see
+# docs/setup/google-places.md). Without a key the app simply never asks Google.
+if [[ -n "${GOOGLE_PLACES_KEY:-}" ]]; then
+  defines+=("--dart-define=GOOGLE_PLACES_KEY=$GOOGLE_PLACES_KEY")
+  echo "Places: Google suggestions on"
+else
+  echo "Places: Google suggestions off"
 fi
 
 cd "$APP"

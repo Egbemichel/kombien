@@ -4,10 +4,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
 import '../app/app_state.dart';
+import '../components/k_add_place_sheet.dart';
 import '../components/k_cards.dart';
 import '../components/k_controls.dart';
 import '../components/k_layout.dart';
 import '../components/k_places.dart';
+import '../data/google_places.dart';
 import '../data/landmark_repository.dart';
 import '../data/problem_repository.dart';
 import '../design/k_motion.dart';
@@ -76,6 +78,15 @@ class _KRoutePickerState extends State<KRoutePicker> {
   Timer? _missTimer;
   static const _missSettle = Duration(milliseconds: 2500);
   int _searchRun = 0;
+
+  /// For a place Kombien does not have: after the rider stops typing for a
+  /// moment, places other riders already added are looked up, then Google's
+  /// suggestions. Waiting keeps the number of asks (and their cost) down.
+  Timer? _helpTimer;
+  static const _helpSettle = Duration(milliseconds: 600);
+  List<PlaceSuggestion> _google = const [];
+  bool _googleStart = false;
+  bool _addFailed = false;
 
   /// The last search, for "See all" and Retry.
   String _lastQuery = '';
@@ -161,6 +172,7 @@ class _KRoutePickerState extends State<KRoutePicker> {
     _app?.locationAccess.removeListener(_accessChanged);
     _debounce?.cancel();
     _missTimer?.cancel();
+    _helpTimer?.cancel();
     _from.dispose();
     _fromFocus.dispose();
     _to.dispose();
@@ -197,7 +209,10 @@ class _KRoutePickerState extends State<KRoutePicker> {
   void _search(String query, {required bool start, bool more = false}) {
     _debounce?.cancel();
     _missTimer?.cancel();
+    _helpTimer?.cancel();
     setState(() {
+      _google = const [];
+      _addFailed = false;
       if (start) {
         _fromLm = null;
         _startError = null; // typing in the start field clears its error
@@ -244,16 +259,63 @@ class _KRoutePickerState extends State<KRoutePicker> {
           _missSettle,
           () => unawaited(app.logSearchMiss(query)),
         );
+        _helpTimer = Timer(
+          _helpSettle,
+          () => unawaited(_helpWithMissing(query, start: start, run: run)),
+        );
       }
     });
+  }
+
+  /// Places other riders added that match, shown like any other result; else
+  /// Google's suggestions, to pick from.
+  Future<void> _helpWithMissing(
+    String query, {
+    required bool start,
+    required int run,
+  }) async {
+    final help = await KAppScope.of(context).helpWithMissingPlace(query);
+    if (!mounted || run != _searchRun || help.isEmpty) return;
+    setState(() {
+      if (help.known.isNotEmpty) {
+        start ? _fromMatches = help.known : _toMatches = help.known;
+        _searchState = _SearchState.idle;
+      } else {
+        _google = help.suggestions;
+        _googleStart = start;
+      }
+    });
+  }
+
+  /// The rider picked one of Google's suggestions: ask what to call it, save
+  /// it as a place they can report against, and use it.
+  Future<void> _pickGoogle(PlaceSuggestion s) async {
+    final start = _googleStart;
+    final label = await showAddPlaceSheet(
+      context,
+      suggestedName: s.title,
+      typed: _lastQuery,
+    );
+    if (label == null || !mounted) return;
+    try {
+      final place = await KAppScope.of(context).addGooglePlace(s, label);
+      if (!mounted) return;
+      setState(() => _google = const []);
+      _pick(place, start: start);
+    } catch (_) {
+      if (mounted) setState(() => _addFailed = true);
+    }
   }
 
   void _pick(Landmark l, {required bool start}) {
     ++_searchRun;
     _debounce?.cancel();
     _missTimer?.cancel();
+    _helpTimer?.cancel();
     (start ? _fromFocus : _toFocus).unfocus();
     setState(() {
+      _google = const [];
+      _addFailed = false;
       _searchState = _SearchState.idle;
       if (start) {
         _from.text = l.name;
@@ -336,6 +398,68 @@ class _KRoutePickerState extends State<KRoutePicker> {
           ),
   );
 
+  /// Google's suggestions for a place Kombien does not have, with Google's
+  /// attribution. Only the place ID of the one picked is kept.
+  Widget _googleSuggestions() {
+    final t = context.l10n;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        KSurfaceCard(
+          radius: 18,
+          padding: const EdgeInsets.fromLTRB(22, 14, 22, 12),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(t.googleSuggestionsTitle, style: KText.section),
+              for (final s in _google) ...[
+                const SizedBox(height: 4),
+                // Pointer-down, like the other result rows: one tap even
+                // while a field has focus.
+                Listener(
+                  behavior: HitTestBehavior.opaque,
+                  onPointerDown: (_) => unawaited(_pickGoogle(s)),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 10),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(s.title, style: KText.rowName),
+                        if (s.subtitle.isNotEmpty)
+                          Text(s.subtitle, style: KText.bodySmall),
+                      ],
+                    ),
+                  ),
+                ),
+                const Divider(height: 1, thickness: 1, color: KColors.divider),
+              ],
+              const SizedBox(height: 10),
+              const GoogleAttribution(),
+            ],
+          ),
+        ),
+        if (_addFailed)
+          Padding(
+            padding: const EdgeInsets.only(top: 10, left: 4),
+            child: Text(
+              t.addPlaceFailed,
+              style: KText.bodySmall.dm(color: KColors.danger),
+            ),
+          ),
+        Padding(
+          padding: const EdgeInsets.only(top: 10, left: 4),
+          child: Semantics(
+            button: true,
+            child: KSkip(
+              t.placeMissingLink,
+              onTap: () => _reportMissing(_lastQuery),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
   /// No match / offline, under the fields.
   Widget _searchCard() {
     final t = context.l10n;
@@ -343,6 +467,11 @@ class _KRoutePickerState extends State<KRoutePicker> {
       _SearchState.idle => const SizedBox(
         key: ValueKey('idle'),
         width: double.infinity,
+      ),
+      _SearchState.noMatch when _google.isNotEmpty => Padding(
+        key: const ValueKey('googleSuggestions'),
+        padding: const EdgeInsets.only(top: 12),
+        child: _googleSuggestions(),
       ),
       _SearchState.noMatch => Padding(
         key: const ValueKey('noMatch'),

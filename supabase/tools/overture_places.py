@@ -34,9 +34,9 @@ CACHE = pi.TOOLS / ".overture-cache"
 # Overture's finer category (taxonomy.primary) -> (kind, rank, minimum
 # confidence). Kinds are OpenStreetMap-style tags, so the app ranks them the
 # way it ranks OSM places. Rank: when one name appears twice, the lower wins.
-HOTEL = ("tourism=hotel", 4, 0.6)
-SCHOOL = ("amenity=school", 4, 0.6)
-WORSHIP = ("amenity=place_of_worship", 4, 0.6)
+HOTEL = ("tourism=hotel", 4, 0.7)
+SCHOOL = ("amenity=school", 4, 0.8)
+WORSHIP = ("amenity=place_of_worship", 4, 0.8)
 FOOD = ("amenity=restaurant", 6, 0.85)
 DRINK = ("amenity=bar", 6, 0.85)
 MARKET = ("amenity=marketplace", 1, 0.5)
@@ -63,8 +63,8 @@ KEEP: dict[str, tuple[str, int, float]] = {
     "clinic": ("amenity=clinic", 4, 0.6), "medical_center": ("amenity=clinic", 4, 0.6),
     "pharmacy": ("amenity=pharmacy", 5, 0.6),
     # learning
-    "college_university": ("amenity=university", 2, 0.5),
-    "university": ("amenity=university", 2, 0.5),
+    "college_university": ("amenity=university", 2, 0.75),
+    "university": ("amenity=university", 2, 0.75),
     "school": SCHOOL, "elementary_school": SCHOOL, "middle_school": SCHOOL,
     "high_school": SCHOOL, "private_school": SCHOOL, "public_school": SCHOOL,
     "primary_school": SCHOOL, "secondary_school": SCHOOL,
@@ -83,7 +83,8 @@ KEEP: dict[str, tuple[str, int, float]] = {
     "stadium_arena": ("leisure=stadium", 2, 0.5), "sports_stadium": ("leisure=stadium", 2, 0.5),
     "museum": ("tourism=museum", 3, 0.5),
     "movie_theater": ("amenity=cinema", 4, 0.6), "cinema": ("amenity=cinema", 4, 0.6),
-    "historic_site": ("historic=monument", 3, 0.6), "monument": ("historic=monument", 3, 0.6),
+    # Overture files buildings, islands and cemeteries under these: only the sure ones.
+    "historic_site": ("historic=monument", 3, 0.9), "monument": ("historic=monument", 3, 0.9),
     "public_plaza": ("place=square", 2, 0.6), "plaza": ("place=square", 2, 0.6),
     "park": ("leisure=park", 3, 0.6), "zoo": ("tourism=zoo", 3, 0.5),
     # places riders meet at: only the well-established ones
@@ -93,6 +94,7 @@ KEEP: dict[str, tuple[str, int, float]] = {
     "bar": DRINK, "lounge": DRINK, "dance_club": DRINK, "nightclub": DRINK, "pub": DRINK,
 }
 
+MAX_NAME = 60
 CLOSED = {"closed", "permanently_closed", "temporarily_closed"}
 
 
@@ -160,6 +162,9 @@ def candidates(rows: list[tuple], min_confidence: float) -> tuple[list[dict], di
             continue
         city = pi.city_of(lat, lng)
         cleaned = pi.clean_name(name)
+        if cleaned and len(cleaned[0]) > MAX_NAME:  # an address or a description, not a name
+            dropped["name too long to be what a rider says"] += 1
+            continue
         if not city or not cleaned:
             dropped["not a usable name or outside the cities"] += 1
             continue

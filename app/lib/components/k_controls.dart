@@ -590,8 +590,10 @@ class KMoneyFormatter extends TextInputFormatter {
   }
 }
 
-/// Title + large italic entry with a mic button ("Tu go où?", "To",
-/// "Paid something else?"). The placeholder is grey; typed text is charcoal.
+/// Title + large italic entry ("Tu go où?", "To", "Paid something else?").
+/// The placeholder is grey; typed text is charcoal. The mic button is held
+/// back ([voice]) until voice entry works: a button that does nothing is
+/// worse than none.
 class KEntryField extends StatelessWidget {
   const KEntryField({
     super.key,
@@ -602,7 +604,11 @@ class KEntryField extends StatelessWidget {
     this.onChanged,
     this.keyboardType,
     this.inputFormatters,
+    this.voice = false,
   });
+
+  /// Shows the mic button. Off until voice entry is available.
+  final bool voice;
 
   /// Defaults to "Tu go où?".
   final String? title;
@@ -640,13 +646,15 @@ class KEntryField extends StatelessWidget {
                 ),
               ),
             ),
-            const HugeIcon(
-              icon: HugeIcons.strokeRoundedMic01,
-              size: 22,
-              color: KColors.charcoal,
-              strokeWidth: 1.5,
-            ),
-            const SizedBox(width: 10),
+            if (voice) ...[
+              const HugeIcon(
+                icon: HugeIcons.strokeRoundedMic01,
+                size: 22,
+                color: KColors.charcoal,
+                strokeWidth: 1.5,
+              ),
+              const SizedBox(width: 10),
+            ],
           ],
         ),
       ],

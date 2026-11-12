@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../services/backend.dart';
+import '../services/device_hint.dart';
 import 'landmark_repository.dart';
 
 enum DayPart { morning, afternoon, night }
@@ -29,9 +30,11 @@ class FareReport {
   final bool? raining;
   final Vehicle vehicle;
 
-  static const minXaf = 50, maxXaf = 50000;
+  /// Fares are paid in steps of 50 FCFA.
+  static const minXaf = 50, maxXaf = 50000, stepXaf = 50;
+  static int roundToStep(int xaf) => (xaf / stepXaf).round() * stepXaf;
   static bool validAmount(int? xaf) =>
-      xaf != null && xaf >= minXaf && xaf <= maxXaf;
+      xaf != null && xaf >= minXaf && xaf <= maxXaf && xaf % stepXaf == 0;
 
   DayPart get effectiveDayPart {
     if (dayPart != null) return dayPart!;
@@ -184,6 +187,7 @@ class LocalFirstReportRepository implements ReportRepository {
         'day_part': r.dayPart.name,
         'raining': r.raining ?? false,
         'vehicle': r.vehicle.name,
+        'device_hint': deviceHint(),
       });
       return true;
     } catch (_) {
@@ -193,6 +197,13 @@ class LocalFirstReportRepository implements ReportRepository {
 
   @override
   Future<StoredReport> submit(FareReport report) async {
+    if (!FareReport.validAmount(report.amountXaf)) {
+      throw ArgumentError.value(
+        report.amountXaf,
+        'amountXaf',
+        'not a step of 50',
+      );
+    }
     var stored = StoredReport.of(report, sent: false);
     if (await _send(stored)) stored = stored.asSent();
     await _write([stored, ...await _read()]);
@@ -208,7 +219,11 @@ class LocalFirstReportRepository implements ReportRepository {
     final all = await _read();
     var changed = false;
     for (var i = 0; i < all.length; i++) {
-      if (!all[i].sent && await _send(all[i])) {
+      // A waiting report from before fares were in steps of 50 can never be
+      // sent: the server would refuse it every time. Leave it on the phone.
+      if (!all[i].sent &&
+          FareReport.validAmount(all[i].amountXaf) &&
+          await _send(all[i])) {
         all[i] = all[i].asSent();
         changed = true;
       }

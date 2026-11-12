@@ -299,7 +299,12 @@ class AppLocalizationsFr extends AppLocalizations {
   String get reportQueuedBody => 'Il sera envoyé dès que tu seras en ligne';
 
   @override
-  String get amountRange => 'Entre un montant entre 50 et 50 000 FCFA';
+  String get amountRange =>
+      'Entre un montant entre 50 et 50 000 FCFA, par paliers de 50';
+
+  @override
+  String get sameRoute =>
+      'Le départ et l\'arrivée ne peuvent pas être le même endroit';
 
   @override
   String get back => 'Retour';

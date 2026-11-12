@@ -22,7 +22,7 @@ import 'route_picker.dart';
 /// Step 2, the form: the route card, price chips suggested from the route's
 /// range, "Paid something else?" (grouped as you type), then optional time
 /// of day, weather and vehicle. Add report stays grey until the amount is
-/// between 50 and 50 000 FCFA; it runs the loading dots while sending and
+/// between 50 and 50 000 FCFA in steps of 50; it runs the loading dots while sending and
 /// confirms with a toast (or, offline / no backend yet, keeps the report on
 /// the phone and says so).
 class ReportFareScreen extends StatefulWidget {
@@ -131,8 +131,9 @@ class _ReportFormState extends State<_ReportForm> {
         r = e.saved;
       } catch (_) {}
       if (!mounted || r == null) return;
-      final mid = ((r.low + r.high) / 2 / 50).round() * 50;
-      setState(() => _suggested = {r!.low, mid, r.high}.toList());
+      int step(num x) => (x / FareReport.stepXaf).round() * FareReport.stepXaf;
+      final mid = step((r.low + r.high) / 2);
+      setState(() => _suggested = {step(r!.low), mid, step(r.high)}.toList());
     });
   }
 
@@ -161,13 +162,15 @@ class _ReportFormState extends State<_ReportForm> {
       _sending = false;
       _done = true;
     });
-    // Once the rider has seen the confirmation, start a fresh report:
-    // the route clears and the report screen opens on step 1.
+    // Once the rider has seen the confirmation, send them home (Je paie
+    // combien?) and leave the report page ready for the next one.
+    final app = KAppScope.of(context);
     await _toasts.currentState?.show(
       t.reportAddedLabel,
       sent ? t.reportAddedTitle : t.reportQueuedTitle,
       sent ? t.reportAddedBody : t.reportQueuedBody,
     );
+    app.page.value = 0;
     if (mounted) widget.onBack();
   }
 

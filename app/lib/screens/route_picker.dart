@@ -98,6 +98,9 @@ class _KRoutePickerState extends State<KRoutePicker> {
 
   String? _startError;
   int _shake = 0;
+
+  /// Both ends are the same place: no route to look up or report.
+  bool _sameRoute = false;
   final _toasts = GlobalKey<KToastHostState>();
 
   /// "Can't find it?": the problem sheet, on "A place is missing", with what
@@ -204,8 +207,18 @@ class _KRoutePickerState extends State<KRoutePicker> {
         if (mounted) _fromFocus.requestFocus();
       });
     }
+    final same = to != null && from != null && _samePlace(from, to);
+    if (same != _sameRoute) setState(() => _sameRoute = same);
+    if (same) {
+      widget.onRoute(null, null);
+      return;
+    }
     widget.onRoute(to == null ? null : from, from == null ? null : to);
   }
+
+  static bool _samePlace(Landmark a, Landmark b) =>
+      (a.id != null && a.id == b.id) ||
+      a.name.trim().toLowerCase() == b.name.trim().toLowerCase();
 
   void _search(String query, {required bool start, bool more = false}) {
     _debounce?.cancel();
@@ -629,6 +642,14 @@ class _KRoutePickerState extends State<KRoutePicker> {
           focusNode: _toFocus,
           onChanged: (q) => _search(q, start: false),
         ),
+        if (_sameRoute)
+          Padding(
+            padding: const EdgeInsets.only(top: 6),
+            child: Text(
+              context.l10n.sameRoute,
+              style: KText.label.dm(color: KColors.danger),
+            ),
+          ),
         _suggestions(_toMatches, start: false),
         _missingLink(_toMatches, start: false),
         _savePrompt(app, _toLm),

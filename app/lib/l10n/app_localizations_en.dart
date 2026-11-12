@@ -301,7 +301,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get reportQueuedBody => 'It will be sent when you\'re back online';
 
   @override
-  String get amountRange => 'Enter an amount between 50 and 50 000 FCFA';
+  String get amountRange =>
+      'Enter an amount between 50 and 50 000 FCFA, in steps of 50';
+
+  @override
+  String get sameRoute =>
+      'Where you leave from and where you go can\'t be the same place';
 
   @override
   String get back => 'Back';

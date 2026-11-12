@@ -21,17 +21,51 @@ enum LocationAccess {
   bool get isGranted => this == granted;
 }
 
+/// Where the phone is, and how sure it is.
+class PositionFix {
+  const PositionFix(this.lat, this.lng, this.accuracyM);
+  final double lat, lng;
+
+  /// The phone's own estimate of how far off it may be, in metres.
+  final double accuracyM;
+}
+
 /// Thin wrapper over geolocator, so screens never touch the plugin and
 /// tests can swap in a fake.
 class LocationService {
-  /// [browser] and [readFix] exist for tests; the defaults are the real
-  /// platform and the real position read.
-  LocationService({bool? browser, Future<void> Function()? readFix})
-    : _browser = browser ?? kIsWeb,
-      _readFix = readFix ?? _readPosition;
+  /// [browser], [readFix] and [readPosition] exist for tests; the defaults are
+  /// the real platform and the real position reads.
+  LocationService({
+    bool? browser,
+    Future<void> Function()? readFix,
+    Future<Position> Function()? readPosition,
+  }) : _browser = browser ?? kIsWeb,
+       _readFix = readFix ?? _readPosition,
+       _readPrecise = readPosition ?? _readPrecisePosition;
 
   final bool _browser;
   final Future<void> Function() _readFix;
+  final Future<Position> Function() _readPrecise;
+
+  static Future<Position> _readPrecisePosition() =>
+      Geolocator.getCurrentPosition(
+        locationSettings: const LocationSettings(
+          accuracy: LocationAccuracy.best,
+        ),
+      );
+
+  /// A fresh, as-accurate-as-possible position with its accuracy, for adding a
+  /// place (nothing cached). Null when it cannot be had within [timeout].
+  Future<PositionFix?> fix({
+    Duration timeout = const Duration(seconds: 12),
+  }) async {
+    try {
+      final p = await _readPrecise().timeout(timeout);
+      return PositionFix(p.latitude, p.longitude, p.accuracy);
+    } catch (_) {
+      return null;
+    }
+  }
 
   static Future<void> _readPosition() => Geolocator.getCurrentPosition(
     locationSettings: const LocationSettings(accuracy: LocationAccuracy.low),

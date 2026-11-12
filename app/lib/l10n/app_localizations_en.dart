@@ -717,4 +717,70 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get addPlaceFailed =>
       'Couldn\'t add that place. Check your connection and try again';
+
+  @override
+  String get addPlaceYourself => 'Add this place';
+
+  @override
+  String get addYourselfLink => 'Not there? Add it yourself';
+
+  @override
+  String get newPlaceTitle => 'Add a place';
+
+  @override
+  String get newPlaceNameHint => 'What riders call it';
+
+  @override
+  String get newPlaceWhereTitle => 'Where is it?';
+
+  @override
+  String get whereHere => 'I\'m here now';
+
+  @override
+  String get whereNear => 'It\'s near a place I know';
+
+  @override
+  String get whereUnknown => 'I\'m not sure where';
+
+  @override
+  String get gpsFinding => 'Finding your position…';
+
+  @override
+  String gpsFound(int m) {
+    return 'Got it. Accurate to about $m m';
+  }
+
+  @override
+  String gpsWeak(int m) {
+    return 'Signal too weak (about $m m off). Go outside, or choose near a place';
+  }
+
+  @override
+  String get gpsOff =>
+      'Can\'t see your position. Allow location, or choose near a place';
+
+  @override
+  String get gpsRetry => 'Try again';
+
+  @override
+  String get nearSearchHint => 'Search a place you know nearby';
+
+  @override
+  String get nearHowFar => 'How far is it from there?';
+
+  @override
+  String get nearNext => 'Right next to it';
+
+  @override
+  String get near200 => 'About 200 m';
+
+  @override
+  String get near500 => 'About 500 m';
+
+  @override
+  String get unknownNote =>
+      'Other riders will find it by its name. It won\'t show up by distance.';
+
+  @override
+  String get newPlaceAction => 'Add this place';
 }

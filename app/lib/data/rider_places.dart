@@ -18,6 +18,62 @@ class MissingPlaceHelp {
   bool get isEmpty => known.isEmpty && suggestions.isEmpty;
 }
 
+/// How a rider says where a place they are adding is.
+///
+/// Nothing proves a rider is at the place, so the server judges each answer:
+/// a position must be fresh and accurate, and inside the city.
+sealed class PlaceWhere {
+  const PlaceWhere();
+
+  /// "I'm here now": the phone's own position and how accurate it says it is.
+  const factory PlaceWhere.gps(double lat, double lng, int accuracyM) = _Gps;
+
+  /// "It's near a place I know": that place, and about how far away.
+  const factory PlaceWhere.near(String anchorId, int metres) = _Near;
+
+  /// "I'm not sure where": found by its name only.
+  const factory PlaceWhere.unknown() = _Unknown;
+}
+
+class _Gps extends PlaceWhere {
+  const _Gps(this.lat, this.lng, this.accuracyM);
+  final double lat, lng;
+  final int accuracyM;
+}
+
+class _Near extends PlaceWhere {
+  const _Near(this.anchorId, this.metres);
+  final String anchorId;
+  final int metres;
+}
+
+class _Unknown extends PlaceWhere {
+  const _Unknown();
+}
+
+/// A place the rider is adding: what they call it, and where it is.
+class NewPlace {
+  const NewPlace(this.label, this.where);
+  final String label;
+  final PlaceWhere where;
+}
+
+/// The parameters of the `add_rider_place` call for [where].
+Map<String, Object?> placeWhereParams(PlaceWhere where) => switch (where) {
+  _Gps(:final lat, :final lng, :final accuracyM) => {
+    'p_method': 'gps',
+    'p_lat': lat,
+    'p_lng': lng,
+    'p_accuracy_m': accuracyM,
+  },
+  _Near(:final anchorId, :final metres) => {
+    'p_method': 'near',
+    'p_anchor_id': anchorId,
+    'p_anchor_m': metres,
+  },
+  _Unknown() => {'p_method': 'none'},
+};
+
 /// Places riders add through Google, and how they are found again.
 ///
 /// A place found through Google is saved on Kombien's side as a landmark named
@@ -29,8 +85,11 @@ class RiderPlaces {
     Future<Landmark> Function(String city, String label, String placeId)?
     addOnServer,
     Future<List<Landmark>> Function(String query, String city)? findOnServer,
+    Future<Landmark> Function(String city, String label, PlaceWhere where)?
+    addPlaceOnServer,
   }) : _add = addOnServer ?? _addRpc,
-       _find = findOnServer ?? _findRpc;
+       _find = findOnServer ?? _findRpc,
+       _addPlace = addPlaceOnServer ?? _addPlaceRpc;
 
   static const _key = 'rider_places';
 
@@ -40,6 +99,8 @@ class RiderPlaces {
   final Future<Landmark> Function(String city, String label, String placeId)
   _add;
   final Future<List<Landmark>> Function(String query, String city) _find;
+  final Future<Landmark> Function(String city, String label, PlaceWhere where)
+  _addPlace;
 
   /// Cleans a name before it is sent, or null when it should not be (too
   /// short or long, or something personal). The database checks the same.
@@ -69,6 +130,21 @@ class RiderPlaces {
     final clean = cleanLabel(label);
     if (clean == null) throw ArgumentError('bad name');
     final landmark = await _add(city, clean, placeId);
+    await remember(landmark);
+    return landmark;
+  }
+
+  /// Adds a place the rider describes themselves (or returns the one Kombien
+  /// already has with that name) and returns the landmark to report against.
+  /// Throws when it cannot, so the caller can ask the rider to try again.
+  Future<Landmark> addPlace({
+    required String city,
+    required String label,
+    required PlaceWhere where,
+  }) async {
+    final clean = cleanLabel(label);
+    if (clean == null) throw ArgumentError('bad name');
+    final landmark = await _addPlace(city, clean, where);
     await remember(landmark);
     return landmark;
   }
@@ -164,6 +240,30 @@ class RiderPlaces {
         await Backend.client.rpc(
               'add_google_place',
               params: {'p_city': city, 'p_label': label, 'p_place_id': placeId},
+            )
+            as List<dynamic>;
+    final row = rows.first as Map<String, dynamic>;
+    return Landmark(
+      id: row['landmark_id'] as String,
+      name: row['landmark_name'] as String,
+    );
+  }
+
+  static Future<Landmark> _addPlaceRpc(
+    String city,
+    String label,
+    PlaceWhere where,
+  ) async {
+    if (!Backend.ready) throw StateError('no backend');
+    await Backend.ensureSignedIn();
+    final rows =
+        await Backend.client.rpc(
+              'add_rider_place',
+              params: {
+                'p_city': city,
+                'p_label': label,
+                ...placeWhereParams(where),
+              },
             )
             as List<dynamic>;
     final row = rows.first as Map<String, dynamic>;

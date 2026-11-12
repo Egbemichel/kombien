@@ -1,0 +1,55 @@
+# Builds the Overture Maps and GeoNames place migrations on GitHub's fast
+# network (Overture is read straight from a public bucket; locally it can
+# take far too long) and hands back the SQL plus a report of what each import
+# would add. Run it from the Actions tab, download the "place-imports"
+# artifact, read the reports, then copy the migrations you want into
+# supabase/migrations and `supabase db push`. See docs/setup/place-imports.md.
+name: Place imports
+
+on:
+  workflow_dispatch:
+    inputs:
+      release:
+        description: "Overture release, e.g. 2026-10-21.0 (blank = latest)"
+        required: false
+        default: ""
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install DuckDB
+        run: pip install duckdb
+
+      - name: Overture Maps
+        env:
+          RELEASE: ${{ inputs.release }}
+        run: |
+          mkdir -p out
+          python supabase/tools/overture_places.py \
+            ${RELEASE:+--release "$RELEASE"} \
+            --out out/overture_places.sql --report out/overture_report.md
+
+      - name: GeoNames
+        run: |
+          python supabase/tools/geonames_places.py \
+            --out out/geonames_places.sql --report out/geonames_report.md
+
+      - name: Reports
+        run: cat out/overture_report.md out/geonames_report.md >> "$GITHUB_STEP_SUMMARY"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: place-imports
+          path: out/
+          retention-days: 14

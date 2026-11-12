@@ -1079,7 +1079,7 @@ abstract class AppLocalizations {
   /// No description provided for @osmCredit.
   ///
   /// In en, this message translates to:
-  /// **'Places © OpenStreetMap contributors'**
+  /// **'Places © OpenStreetMap contributors, Overture Maps Foundation, GeoNames'**
   String get osmCredit;
 
   /// No description provided for @packFailedLabel.

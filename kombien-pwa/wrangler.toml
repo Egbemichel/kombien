@@ -3,6 +3,9 @@
 #
 # Deployed by .github/workflows/deploy-pwa.yml, or by hand from this folder:
 #   bash scripts/build.sh && npx wrangler deploy
+#
+# A release that should tell riders: put [announce] in the PR title
+# (docs/setup/push-reminders.md).
 name = "kombien"
 compatibility_date = "2025-06-01"
 

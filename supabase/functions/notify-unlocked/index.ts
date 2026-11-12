@@ -13,8 +13,9 @@
 // only send what the data already justifies, once.
 //
 // POST { job: "reminders" }              (scheduled, 08:30 Cameroon time daily)
-//   The morning nudge: every phone with the 'reminders' topic that has not
-//   had one for 3 days (and none today), never in quiet hours.
+//   Sends what was held back overnight, then the morning nudge: every phone
+//   with the 'reminders' topic that has not had one for 3 days (and none
+//   today), never in quiet hours.
 // POST { announce: "update", key }       (after a release deploys)
 //   "Kombien has been updated", once per key, to phones with the 'updates'
 //   topic; held until the morning when it is quiet hours.
@@ -416,7 +417,10 @@ Deno.serve(async (req) => {
       return new Response("not allowed", { status: 403, headers: cors });
     }
     if (body.job === "reminders") {
-      return Response.json({ reminded: await sendReminders() }, {
+      // First, whatever was held back overnight (an update announcement, an
+      // unlocked-fares notice); then the morning nudge to those still due.
+      const sent = await flush();
+      return Response.json({ sent, reminded: await sendReminders() }, {
         headers: cors,
       });
     }

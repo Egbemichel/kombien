@@ -186,3 +186,17 @@ h1 span { display: block; }
   .cloud { animation: none; }
   .btn { transition: none; }
 }
+
+/* ============================================================ intro */
+.intro {
+  position: fixed; inset: 0; z-index: 100; display: flex;
+  align-items: center; justify-content: center; background: var(--bg);
+  animation: intro-out 420ms ease-out 1.25s forwards;
+}
+.intro img { width: 203px; max-width: 60vw; height: auto; animation: breathe 1.6s ease-in-out infinite; }
+@keyframes breathe { 50% { opacity: .55; } }
+@keyframes intro-out { to { opacity: 0; visibility: hidden; } }
+@media (prefers-reduced-motion: reduce) {
+  .intro { animation-duration: 1ms; animation-delay: 0s; }
+  .intro img { animation: none; }
+}

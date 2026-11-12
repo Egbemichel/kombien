@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../services/backend.dart';
+import '../services/device_hint.dart';
 import 'landmark_repository.dart';
 
 enum DayPart { morning, afternoon, night }
@@ -29,9 +30,10 @@ class FareReport {
   final bool? raining;
   final Vehicle vehicle;
 
-  static const minXaf = 50, maxXaf = 50000;
+  /// Fares are paid in steps of 50 FCFA.
+  static const minXaf = 50, maxXaf = 50000, stepXaf = 50;
   static bool validAmount(int? xaf) =>
-      xaf != null && xaf >= minXaf && xaf <= maxXaf;
+      xaf != null && xaf >= minXaf && xaf <= maxXaf && xaf % stepXaf == 0;
 
   DayPart get effectiveDayPart {
     if (dayPart != null) return dayPart!;
@@ -184,6 +186,7 @@ class LocalFirstReportRepository implements ReportRepository {
         'day_part': r.dayPart.name,
         'raining': r.raining ?? false,
         'vehicle': r.vehicle.name,
+        'device_hint': deviceHint(),
       });
       return true;
     } catch (_) {

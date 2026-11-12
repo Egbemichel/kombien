@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:hugeicons/hugeicons.dart';
 import 'package:kombien/app/app_state.dart';
 import 'package:kombien/components/k_bits.dart';
 import 'package:kombien/components/k_cards.dart';
@@ -135,6 +136,34 @@ void main() {
     );
   });
 
+  testWidgets('the same place for from and to is refused', (tester) async {
+    await open(
+      tester,
+      fares: FakeFares(answer: const FareRange(low: 500, high: 700)),
+    );
+    await type(tester, 0, 'eya');
+    await pick(tester, 'Eyang');
+    await type(tester, 1, 'eya');
+    await pick(tester, 'Eyang');
+    expect(
+      find.text(
+        "Where you leave from and where you go can't be the same place",
+      ),
+      findsOneWidget,
+    );
+    expect(find.text('Report it here'), findsNothing);
+  });
+
+  testWidgets('no voice button until voice entry works', (tester) async {
+    await open(tester);
+    expect(
+      find.byWidgetPredicate(
+        (w) => w is HugeIcon && w.icon == HugeIcons.strokeRoundedMic01,
+      ),
+      findsNothing,
+    );
+  });
+
   testWidgets('report: amount limits, then the report is added and counted', (
     tester,
   ) async {
@@ -154,10 +183,14 @@ void main() {
     final amount = find.byType(TextField).last;
     await tester.enterText(amount, '20');
     await tester.pumpAndSettle();
-    expect(
-      find.text('Enter an amount between 50 and 50 000 FCFA'),
-      findsOneWidget,
-    );
+    const rule = 'Enter an amount between 50 and 50 000 FCFA, in steps of 50';
+    expect(find.text(rule), findsOneWidget);
+    expect(add().onPressed, isNull);
+
+    // A fare is a multiple of 50: 625 is refused, 650 is fine.
+    await tester.enterText(amount, '625');
+    await tester.pumpAndSettle();
+    expect(find.text(rule), findsOneWidget);
     expect(add().onPressed, isNull);
 
     await tester.tap(find.text('600'));
@@ -183,8 +216,12 @@ void main() {
     expect(find.byType(KRouteCard), findsOneWidget);
     expect(add().onPressed, isNull);
 
-    // Once it has gone: a fresh report, back on step 1 with empty fields.
+    // Once it has gone: the rider is sent home (Je paie combien?), and the
+    // report page is a fresh report, back on step 1 with empty fields.
     await tester.pump(const Duration(seconds: 5));
+    await tester.pumpAndSettle();
+    expect(state.page.value, 0);
+    state.page.value = 1; // open the report page again
     await tester.pumpAndSettle();
     expect(find.byType(KRouteCard), findsNothing);
     expect(find.text('Where are you/did you leave from?'), findsOneWidget);

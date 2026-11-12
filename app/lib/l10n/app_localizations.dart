@@ -653,8 +653,14 @@ abstract class AppLocalizations {
   /// No description provided for @amountRange.
   ///
   /// In en, this message translates to:
-  /// **'Enter an amount between 50 and 50 000 FCFA'**
+  /// **'Enter an amount between 50 and 50 000 FCFA, in steps of 50'**
   String get amountRange;
+
+  /// No description provided for @sameRoute.
+  ///
+  /// In en, this message translates to:
+  /// **'Where you leave from and where you go can\'t be the same place'**
+  String get sameRoute;
 
   /// No description provided for @back.
   ///

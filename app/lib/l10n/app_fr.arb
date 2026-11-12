@@ -163,7 +163,7 @@
   "installedLabel": "Installé",
   "installedTitle": "Kombien est sur votre téléphone",
   "installedBody": "Ouvrez-le depuis l'écran d'accueil, même sans internet.",
-  "osmCredit": "Lieux © les contributeurs d’OpenStreetMap",
+  "osmCredit": "Lieux © les contributeurs d’OpenStreetMap, Overture Maps Foundation, GeoNames",
   "packFailedLabel": "Pas de connexion",
   "packFailedTitle": "Impossible d'enregistrer cette ville",
   "packFailedBody": "Kombien réessaiera quand vous serez de nouveau en ligne.",

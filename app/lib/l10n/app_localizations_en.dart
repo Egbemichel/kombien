@@ -554,7 +554,8 @@ class AppLocalizationsEn extends AppLocalizations {
       'Open it from your home screen, even without internet.';
 
   @override
-  String get osmCredit => 'Places © OpenStreetMap contributors';
+  String get osmCredit =>
+      'Places © OpenStreetMap contributors, Overture Maps Foundation, GeoNames';
 
   @override
   String get packFailedLabel => 'No connection';

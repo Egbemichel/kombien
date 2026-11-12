@@ -226,7 +226,7 @@
   "installedLabel": "Installed",
   "installedTitle": "Kombien is on your phone",
   "installedBody": "Open it from your home screen, even without internet.",
-  "osmCredit": "Places © OpenStreetMap contributors",
+  "osmCredit": "Places © OpenStreetMap contributors, Overture Maps Foundation, GeoNames",
   "packFailedLabel": "No connection",
   "packFailedTitle": "Couldn't save that city",
   "packFailedBody": "Kombien will try again when you're back online.",

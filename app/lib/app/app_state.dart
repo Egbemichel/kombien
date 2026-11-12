@@ -7,9 +7,11 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import '../data/city_pack.dart';
 import '../data/fare_repository.dart';
+import '../data/google_places.dart';
 import '../data/landmark_repository.dart';
 import '../data/problem_repository.dart';
 import '../data/report_repository.dart';
+import '../data/rider_places.dart';
 import '../data/search_miss_log.dart';
 import '../l10n/app_localizations.dart';
 import '../services/backend.dart';
@@ -28,6 +30,8 @@ class KAppState {
     ReportRepository? reports,
     ProblemRepository? problems,
     SearchMissLog? searchMisses,
+    GooglePlaces? googlePlaces,
+    RiderPlaces? riderPlaces,
     CityPacks? packs,
     PushClient? push,
   }) : this._(
@@ -39,6 +43,8 @@ class KAppState {
          reports: reports,
          problems: problems,
          searchMisses: searchMisses,
+         googlePlaces: googlePlaces,
+         riderPlaces: riderPlaces ?? RiderPlaces(),
        );
 
   KAppState._(
@@ -50,11 +56,14 @@ class KAppState {
     ReportRepository? reports,
     ProblemRepository? problems,
     SearchMissLog? searchMisses,
+    GooglePlaces? googlePlaces,
+    required this.riderPlaces,
   }) : push = push ?? PushClient.standard(),
        problems = problems ?? ProblemRepository(),
        searchMisses = searchMisses ?? SearchMissLog(),
+       googlePlaces = googlePlaces ?? GooglePlaces(),
        location = location ?? LocationService(),
-       landmarks = landmarks ?? LandmarkRepository.standard(packs),
+       landmarks = landmarks ?? LandmarkRepository.standard(packs, riderPlaces),
        fares = fares ?? FareRepository.standard(packs),
        reports = reports ?? ReportRepository.standard();
 
@@ -91,6 +100,44 @@ class KAppState {
   /// Place searches that found nothing, kept (and sent, with no rider
   /// identity) so the missing places can be found and added.
   final SearchMissLog searchMisses;
+
+  /// Google's suggestions for a place Kombien does not have (off without a
+  /// key), and the places riders added through them.
+  final GooglePlaces googlePlaces;
+  final RiderPlaces riderPlaces;
+
+  /// For a search that found nothing: places other riders already added that
+  /// match (no Google involved), else Google's suggestions. Never throws.
+  Future<MissingPlaceHelp> helpWithMissingPlace(String typed) async {
+    final city = myCity.value;
+    final known = await riderPlaces.find(typed, city: city);
+    if (known.isNotEmpty) return MissingPlaceHelp(known: known);
+    final suggestions = await googlePlaces.suggest(
+      typed,
+      city: city,
+      languageCode: language.value.languageCode,
+    );
+    return MissingPlaceHelp(suggestions: suggestions);
+  }
+
+  /// Saves the place the rider picked from Google's suggestions as a place
+  /// they can report against, named with their own words. Throws when it
+  /// cannot (offline, too many today, a bad name).
+  Future<Landmark> addGooglePlace(PlaceSuggestion picked, String label) =>
+      riderPlaces.add(
+        city: myCity.value,
+        label: label,
+        placeId: picked.placeId,
+      );
+
+  /// Adds a place the rider described themselves (or returns the one Kombien
+  /// already has with that name) as a place they can report against. Throws
+  /// when it cannot (offline, too many today, a position the server refuses).
+  Future<Landmark> addRiderPlace(NewPlace place) => riderPlaces.addPlace(
+    city: myCity.value,
+    label: place.label,
+    where: place.where,
+  );
 
   /// A search that found nothing and was left alone: the typed words only.
   Future<void> logSearchMiss(String typed) => searchMisses.record(
@@ -643,6 +690,7 @@ class KAppState {
       reportHistory.value = await reports.history();
     } catch (_) {}
     await packs.load();
+    await riderPlaces.load();
     await _loadPush();
     unawaited(sync());
     // The in-app switch (Settings) wins over the phone's permission.

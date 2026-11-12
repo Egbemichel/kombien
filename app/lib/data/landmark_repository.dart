@@ -1,5 +1,6 @@
 import '../services/backend.dart';
 import 'city_pack.dart';
+import 'rider_places.dart';
 import 'sample_landmarks.dart';
 
 /// A named place riders use as a start or destination.
@@ -34,13 +35,15 @@ abstract class LandmarkRepository {
   });
 
   /// Supabase when configured, else the built-in sample list; either way
-  /// the city packs saved on the phone answer first.
-  factory LandmarkRepository.standard(CityPacks packs) =>
+  /// the city packs saved on the phone answer first, then the places this
+  /// phone added through Google.
+  factory LandmarkRepository.standard(CityPacks packs, [RiderPlaces? mine]) =>
       OfflineFirstLandmarkRepository(
         packs,
         Backend.configured
             ? SupabaseLandmarkRepository()
             : const SampleLandmarkRepository(),
+        mine: mine ?? RiderPlaces(),
       );
 }
 
@@ -55,9 +58,14 @@ class OfflineFirstLandmarkRepository implements LandmarkRepository {
     this.packs,
     this.remote, {
     this.remoteTimeout = const Duration(seconds: 2),
+    this.mine,
   });
   final CityPacks packs;
   final LandmarkRepository remote;
+
+  /// Places this phone added through Google (they have no location, so the
+  /// city packs do not carry them).
+  final RiderPlaces? mine;
 
   /// The longest the database is waited for when the packs are not enough.
   final Duration remoteTimeout;
@@ -69,7 +77,18 @@ class OfflineFirstLandmarkRepository implements LandmarkRepository {
     double? lng,
     int limit = 3,
   }) async {
-    final local = packs.search(query, lat: lat, lng: lng, limit: limit);
+    var local = packs.search(query, lat: lat, lng: lng, limit: limit);
+    if (local.length < limit && mine != null) {
+      // Never let search wait on the phone's storage: a moment, then move on.
+      final added = await mine!
+          .mine(query, limit: limit - local.length)
+          .timeout(
+            const Duration(milliseconds: 300),
+            onTimeout: () => const <Landmark>[],
+          );
+      final seen = {for (final l in local) l.id ?? l.name};
+      local = [...local, ...added.where((l) => seen.add(l.id ?? l.name))];
+    }
     if (local.length >= limit) return local;
     if (kCityAreas.keys.every(packs.has)) return local; // the whole answer
     try {

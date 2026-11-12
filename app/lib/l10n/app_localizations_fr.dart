@@ -695,4 +695,92 @@ class AppLocalizationsFr extends AppLocalizations {
   String nearPlace(String place) {
     return 'Près de $place';
   }
+
+  @override
+  String get googleSuggestionsTitle =>
+      'Pas encore dans Kombien. C\'est l\'un de ceux-ci ?';
+
+  @override
+  String get addPlaceTitle => 'Enregistrer ce lieu sous le nom';
+
+  @override
+  String addPlaceSuggested(String name) {
+    return 'Suggestion de Google : $name';
+  }
+
+  @override
+  String get addPlaceHint => 'Le nom que les gens utilisent';
+
+  @override
+  String get addPlaceAction => 'Utiliser ce lieu';
+
+  @override
+  String get addPlaceFailed =>
+      'Impossible d\'ajouter ce lieu. Vérifie ta connexion et réessaie';
+
+  @override
+  String get addPlaceYourself => 'Ajouter ce lieu';
+
+  @override
+  String get addYourselfLink => 'Pas là ? Ajoute-le toi-même';
+
+  @override
+  String get newPlaceTitle => 'Ajouter un lieu';
+
+  @override
+  String get newPlaceNameHint => 'Le nom que les gens utilisent';
+
+  @override
+  String get newPlaceWhereTitle => 'Où est-ce ?';
+
+  @override
+  String get whereHere => 'Je suis ici';
+
+  @override
+  String get whereNear => 'C\'est près d\'un lieu que je connais';
+
+  @override
+  String get whereUnknown => 'Je ne sais pas où';
+
+  @override
+  String get gpsFinding => 'Recherche de ta position…';
+
+  @override
+  String gpsFound(int m) {
+    return 'C\'est bon. Précision d\'environ $m m';
+  }
+
+  @override
+  String gpsWeak(int m) {
+    return 'Signal trop faible (environ $m m d\'écart). Sors dehors, ou choisis près d\'un lieu';
+  }
+
+  @override
+  String get gpsOff =>
+      'Position introuvable. Autorise la localisation, ou choisis près d\'un lieu';
+
+  @override
+  String get gpsRetry => 'Réessayer';
+
+  @override
+  String get nearSearchHint => 'Cherche un lieu que tu connais près de là';
+
+  @override
+  String get nearHowFar => 'À quelle distance ?';
+
+  @override
+  String get nearNext => 'Juste à côté';
+
+  @override
+  String get near200 => 'Environ 200 m';
+
+  @override
+  String get near500 => 'Environ 500 m';
+
+  @override
+  String get unknownNote =>
+      'Les autres le trouveront par son nom. Il n\'apparaîtra pas selon la distance.';
+
+  @override
+  String get newPlaceAction => 'Ajouter ce lieu';
 }

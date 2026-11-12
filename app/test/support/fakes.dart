@@ -10,10 +10,19 @@ class FakeLocation extends LocationService {
     this.current = LocationAccess.denied,
     this.answer = LocationAccess.granted,
     this.at,
+    this.fixResult,
   });
   LocationAccess current;
   LocationAccess answer;
   int requests = 0;
+
+  /// What a precise fix answers (a place being added); null: none.
+  PositionFix? fixResult;
+
+  @override
+  Future<PositionFix?> fix({
+    Duration timeout = const Duration(seconds: 12),
+  }) async => fixResult;
 
   /// Where the phone is; null: no fix.
   (double, double)? at;

@@ -4,38 +4,104 @@
 --    VALID: new reports are checked, older ones are left alone.
 --
 -- 2. A rider who opens Kombien in three browsers is three anonymous sign-ins.
---    Reports now also carry a "device hint": a hash of coarse, non-identifying
---    traits the browsers on one phone share (screen size, pixel ratio, cores,
---    time zone). It cannot say who anyone is, and it is only ever compared
---    with other hints. A route's range then counts each person once per day:
---    one report per sign-in per route per day, and one per device hint per
---    route per day. (Two riders with the same phone model who report the same
---    route on the same day count once: the safe direction, since it can only
---    delay a range, never invent one.)
+--    Two layers now tell them apart from three real people, and a range
+--    counts each person once per route per day:
+--      * device_hint: sent by the app. A hash of coarse traits the browsers
+--        on one phone share (screen size, pixel ratio, time zone, system,
+--        language). It cannot say who anyone is.
+--      * net_key: stamped here, by the database, from the network the report
+--        came from. The address itself is NEVER stored: it is cut to its
+--        neighbourhood (/24, or /64 for IPv6), mixed with the day and a
+--        server-side secret, and hashed. The result cannot be turned back
+--        into an address, and cannot be matched across days.
+--    Two sign-ins count as one person only when BOTH layers agree (same
+--    device hint, same network, same day); one sign-in is one person. Needing
+--    both keeps two riders who merely own the same phone model, or share a
+--    mobile network, from being merged.
 
 alter table public.fare_reports
   add column if not exists device_hint text
-    check (device_hint is null or device_hint ~ '^[0-9a-f]{32}$');
+    check (device_hint is null or device_hint ~ '^[0-9a-f]{32}$'),
+  add column if not exists net_key text;
 
 alter table public.fare_reports
   add constraint fare_reports_amount_step check (amount_xaf % 50 = 0) not valid;
 
+-- The server-side secret for net_key. Nothing in the API can read it.
+create table if not exists public.integrity_secret (
+  id     boolean primary key default true check (id),
+  secret bytea not null
+);
+alter table public.integrity_secret enable row level security;
+revoke all on public.integrity_secret from public, anon, authenticated;
+insert into public.integrity_secret (secret)
+  values (extensions.gen_random_bytes(32)) on conflict do nothing;
+
+create or replace function public.stamp_report_network()
+returns trigger
+language plpgsql
+security definer
+set search_path = ''
+as $$
+declare
+  h      json;
+  ip     text;
+  hood   text;
+  key    bytea;
+begin
+  -- Whatever the app sent for net_key is ignored: only the database sets it.
+  new.net_key := null;
+  begin
+    h := current_setting('request.headers', true)::json;
+    ip := trim(split_part(coalesce(nullif(h->>'cf-connecting-ip', ''),
+                                   nullif(h->>'x-real-ip', ''),
+                                   h->>'x-forwarded-for', ''), ',', 1));
+    if ip <> '' then
+      hood := host(network(set_masklen(ip::inet,
+                case family(ip::inet) when 4 then 24 else 64 end)));
+    end if;
+  exception when others then
+    hood := null;
+  end;
+  if hood is not null then
+    select secret into key from public.integrity_secret;
+    new.net_key := substr(encode(extensions.hmac(convert_to(
+      hood || '|' || to_char(now() at time zone 'Africa/Douala', 'YYYY-MM-DD'),
+      'utf8'), key, 'sha256'), 'hex'), 1, 32);
+  end if;
+  return new;
+end;
+$$;
+
+revoke all on function public.stamp_report_network() from public, anon, authenticated;
+
+drop trigger if exists fare_reports_stamp_network on public.fare_reports;
+create trigger fare_reports_stamp_network
+  before insert on public.fare_reports
+  for each row execute function public.stamp_report_network();
+
 -- The reports that count towards a range. Not readable through the API.
+-- One per sign-in per route per day, then one per (device hint, network) per
+-- route per day.
 create or replace view public.counted_fare_reports as
 select c.*
 from (
-  select distinct on (u.from_landmark_id, u.to_landmark_id,
-                      coalesce(u.device_hint, u.reported_by::text), u.day) u.*
+  select distinct on (u.from_landmark_id, u.to_landmark_id, u.person, u.day) u.*
   from (
-    select distinct on (f.from_landmark_id, f.to_landmark_id, f.reported_by,
-                        (f.created_at at time zone 'Africa/Douala')::date)
-           f.*, (f.created_at at time zone 'Africa/Douala')::date as day
-    from public.fare_reports f
-    order by f.from_landmark_id, f.to_landmark_id, f.reported_by,
-             (f.created_at at time zone 'Africa/Douala')::date, f.created_at
+    select s.*,
+           (s.created_at at time zone 'Africa/Douala')::date as day,
+           case when s.device_hint is not null and s.net_key is not null
+                then s.device_hint || ':' || s.net_key
+                else s.reported_by::text end as person
+    from (
+      select distinct on (f.from_landmark_id, f.to_landmark_id, f.reported_by,
+                          (f.created_at at time zone 'Africa/Douala')::date) f.*
+      from public.fare_reports f
+      order by f.from_landmark_id, f.to_landmark_id, f.reported_by,
+               (f.created_at at time zone 'Africa/Douala')::date, f.created_at
+    ) s
   ) u
-  order by u.from_landmark_id, u.to_landmark_id,
-           coalesce(u.device_hint, u.reported_by::text), u.day, u.created_at
+  order by u.from_landmark_id, u.to_landmark_id, u.person, u.day, u.created_at
 ) c;
 
 revoke all on public.counted_fare_reports from public, anon, authenticated;

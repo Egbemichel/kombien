@@ -167,6 +167,9 @@ class KAppState {
 
   /// Submits [report] and remembers it. True when it reached the server.
   Future<bool> submitReport(FareReport report) async {
+    // Fares are paid in steps of 50: a report that is not one never leaves
+    // the app (the form refuses it too; this covers every other way in).
+    if (!FareReport.validAmount(report.amountXaf)) return false;
     // Was there a range before this report? If not, and there is one
     // after, this rider's report unlocked it (see [unlocked]).
     final from = report.from, to = report.to;
@@ -469,7 +472,7 @@ class KAppState {
       FareReport(
         from: trip.fromLandmark,
         to: trip.toLandmark,
-        amountXaf: amount,
+        amountXaf: FareReport.roundToStep(amount),
       ),
     );
   }

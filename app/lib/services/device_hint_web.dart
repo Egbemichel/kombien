@@ -17,7 +17,8 @@ extension type _Screen(JSObject _) implements JSObject {
 }
 
 extension type _Navigator(JSObject _) implements JSObject {
-  external int? get hardwareConcurrency;
+  external String? get userAgent;
+  external String? get language;
 }
 
 String? _cached;
@@ -32,8 +33,9 @@ String? deviceHint() {
       screenWidth: s.width,
       screenHeight: s.height,
       pixelRatio: _pixelRatio ?? 1,
-      cores: _navigator?.hardwareConcurrency ?? 0,
       utcOffsetMinutes: DateTime.now().timeZoneOffset.inMinutes,
+      os: osFamilyOf(_navigator?.userAgent ?? ''),
+      language: _navigator?.language ?? '',
     );
   } catch (_) {
     return null;

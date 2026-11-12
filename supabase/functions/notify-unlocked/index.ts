@@ -19,7 +19,12 @@
 // POST { announce: "update", key }       (after a release deploys)
 //   "Kombien has been updated", once per key, to phones with the 'updates'
 //   topic; held until the morning when it is quiet hours.
-//   Both need the x-notify-secret header (NOTIFY_SECRET).
+// POST { job: "test_update" }            (the "Push test" workflow, by hand)
+//   A real "Kombien has been updated" notification to every phone with the
+//   'updates' topic, right now: quiet hours and the daily limit do not apply,
+//   and it leaves no trace in the limits (no announcement record, no
+//   last-sent time), so normal behaviour is unchanged. Short-lived (10 min).
+//   All three need the x-notify-secret header (NOTIFY_SECRET).
 //
 // Secrets: VAPID_PUBLIC_KEY, VAPID_PRIVATE_KEY, NOTIFY_SECRET
 // (supabase secrets set).
@@ -315,6 +320,32 @@ async function sendReminders(): Promise<number> {
   return sent;
 }
 
+/** A test of the update notification, to every phone that opted in. */
+async function testUpdate(): Promise<number> {
+  if (!vapid()) return 0;
+  const { data: subs } = await db.from("push_subscriptions")
+    .select("id, endpoint, p256dh, auth, locale")
+    .contains("topics", ["updates"]);
+  let sent = 0;
+  for (const s of subs ?? []) {
+    const msg = s.locale === "fr" ? updated.fr : updated.en;
+    try {
+      await webpush.sendNotification(
+        { endpoint: s.endpoint, keys: { p256dh: s.p256dh, auth: s.auth } },
+        JSON.stringify({ ...msg, tag: "update-test", url: "/" }),
+        { TTL: 600 },
+      );
+      sent++;
+    } catch (e) {
+      const status = (e as { statusCode?: number }).statusCode;
+      if (status === 404 || status === 410) {
+        await db.from("push_subscriptions").delete().eq("id", s.id);
+      }
+    }
+  }
+  return sent;
+}
+
 /** "Kombien has been updated", once per [key], to phones that opted in. */
 async function announceUpdate(key: string): Promise<number> {
   if (!/^[A-Za-z0-9._-]{1,64}$/.test(key)) return 0;
@@ -412,9 +443,15 @@ Deno.serve(async (req) => {
       headers: cors,
     });
   }
-  if (body.job === "reminders" || body.announce === "update") {
+  if (
+    body.job === "reminders" || body.job === "test_update" ||
+    body.announce === "update"
+  ) {
     if (!trusted(req)) {
       return new Response("not allowed", { status: 403, headers: cors });
+    }
+    if (body.job === "test_update") {
+      return Response.json({ tested: await testUpdate() }, { headers: cors });
     }
     if (body.job === "reminders") {
       // First, whatever was held back overnight (an update announcement, an

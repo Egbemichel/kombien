@@ -59,6 +59,7 @@ class CityPack {
     required this.places,
     required this.fares,
     this.version = current,
+    this.stamp,
   });
 
   /// 2: places carry their kind (before: no kind, ranking by distance only).
@@ -69,6 +70,10 @@ class CityPack {
   final DateTime savedAt;
   final List<PackPlace> places;
 
+  /// What the database's places looked like when this was saved (see the
+  /// pack_version function): when it differs, places were added since.
+  final String? stamp;
+
   /// "fromId→toId" → (low, high, reports).
   final Map<String, (int, int, int)> fares;
 
@@ -76,6 +81,7 @@ class CityPack {
     'v': version,
     'city': city,
     'at': savedAt.toIso8601String(),
+    if (stamp != null) 'stamp': stamp,
     'places': [for (final p in places) p.toJson()],
     'fares': {
       for (final e in fares.entries)
@@ -88,6 +94,7 @@ class CityPack {
     return CityPack(
       version: (j['v'] as int?) ?? 1,
       city: j['city'] as String,
+      stamp: j['stamp'] as String?,
       savedAt: DateTime.parse(j['at'] as String),
       places: [
         for (final p in j['places'] as List) PackPlace.fromJson(p as List),
@@ -191,7 +198,25 @@ double metresBetween(double lat1, double lng1, double lat2, double lng2) {
 
 /// The packs saved on this phone, and getting new ones.
 class CityPacks {
-  CityPacks();
+  /// [fetchStamp] asks the database what a city's places look like now
+  /// (tests pass their own).
+  CityPacks({Future<String?> Function(String city)? fetchStamp})
+    : _fetchStamp = fetchStamp ?? _databaseStamp;
+
+  final Future<String?> Function(String city) _fetchStamp;
+
+  static Future<String?> _databaseStamp(String city) async {
+    if (!Backend.ready) return null;
+    try {
+      final v = await Backend.client.rpc(
+        'pack_version',
+        params: {'city_name': city},
+      );
+      return v is String && v.isNotEmpty ? v : null;
+    } catch (_) {
+      return null; // offline, or the database predates the function
+    }
+  }
 
   static const _prefix = 'city_pack:';
 
@@ -234,6 +259,8 @@ class CityPacks {
     try {
       final List<PackPlace> places;
       final Map<String, (int, int, int)> fares;
+      // Asked first, so the saved stamp is never newer than the saved places.
+      final stamp = await _fetchStamp(city);
       if (Backend.ready) {
         final raw =
             await Backend.client.rpc(
@@ -268,6 +295,7 @@ class CityPacks {
         savedAt: DateTime.now(),
         places: places,
         fares: fares,
+        stamp: stamp,
       );
       final p = await SharedPreferences.getInstance();
       await p.setString('$_prefix$city', pack.toJson());
@@ -408,6 +436,17 @@ class CityPacks {
       }
     }
     return null;
+  }
+
+  /// True when the database has places this phone's saved copy of [city]
+  /// lacks (one added by hand, imported or added by a rider since). A quick
+  /// question, far lighter than downloading the pack. False when it cannot
+  /// tell (offline). A pack saved before stamps existed counts as outdated
+  /// once, so it picks up what it missed.
+  Future<bool> outdated(String city) async {
+    final mine = saved.value[city]?.stamp;
+    final now = await _fetchStamp(city);
+    return now != null && now != mine;
   }
 
   /// Saved over a week ago, or in an older format: worth refreshing.

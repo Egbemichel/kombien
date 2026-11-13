@@ -248,7 +248,8 @@ class KAppState {
     unawaited(keepCityPack());
   }
 
-  /// Saves (or refreshes, once a week) My city's pack without being asked,
+  /// Saves (or refreshes, once a week or as soon as places were added) My
+  /// city's pack without being asked,
   /// so search and fares keep working when the connection drops.
   Future<void> keepCityPack() async {
     if (!Backend.ready) return; // sample data needs no pack
@@ -259,7 +260,13 @@ class KAppState {
       ...kCityAreas.keys.where((c) => c != myCity.value),
     ];
     for (final city in cities) {
-      if (packs.has(city) && !packs.stale(city)) continue;
+      // A new place in the database is on the phone the next time the app
+      // opens, not a week later.
+      if (packs.has(city) &&
+          !packs.stale(city) &&
+          !await packs.outdated(city)) {
+        continue;
+      }
       if (!await packs.download(city)) return; // offline: try again later
     }
   }

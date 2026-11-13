@@ -1,0 +1,176 @@
+"""Turns a list of places and their Plus Codes into a Supabase migration.
+
+    python supabase/tools/places_from_plus_codes.py missing_places.csv
+
+The CSV has a header row and these columns (extra ones are ignored):
+
+    name       the place as riders say it (required)
+    city       Yaoundé or Douala (required)
+    plus_code  from Google Maps, full ("6FMHVGQH+XV") or short ("VGQH+XQ5,
+               Yaoundé"); rows without one are skipped
+    kind       market, supermarket, neighbourhood, junction, school, hospital,
+               clinic, hotel, bank, church, mosque, fuel, restaurant, other
+               (or an OpenStreetMap tag like shop=mall); default: other
+    aliases    other names, separated by ;
+    query      the search this answers (from missing_places.py): its row in
+               the missing list is cleared when the migration is applied
+
+It checks every place against what the live database already has (same name,
+one name inside the other close by, a very similar name close by) and against
+the city's area, and writes the migration plus a report of what it skipped and
+why. Nothing touches the database: review, then `supabase db push`.
+Places are saved with source 'manual'.
+"""
+
+from __future__ import annotations
+
+import argparse
+import csv
+import datetime as dt
+import sys
+from pathlib import Path
+
+import dbq
+import place_import as pi
+import plus_codes
+
+KINDS = {
+    "market": "amenity=marketplace", "marché": "amenity=marketplace",
+    "supermarket": "shop=supermarket", "shop": "shop=supermarket",
+    "neighbourhood": "place=neighbourhood", "neighborhood": "place=neighbourhood",
+    "quartier": "place=neighbourhood", "junction": "place=locality",
+    "carrefour": "place=locality", "school": "amenity=school",
+    "university": "amenity=university", "hospital": "amenity=hospital",
+    "clinic": "amenity=clinic", "pharmacy": "amenity=pharmacy",
+    "hotel": "tourism=hotel", "bank": "amenity=bank",
+    "church": "amenity=place_of_worship", "mosque": "amenity=place_of_worship",
+    "fuel": "amenity=fuel", "station": "amenity=fuel",
+    "restaurant": "amenity=restaurant", "bar": "amenity=bar",
+    "mall": "shop=mall", "stadium": "leisure=stadium",
+    "other": "place=locality", "": "place=locality",
+}
+
+
+def live_places() -> list[dict]:
+    out = []
+    for r in dbq.rows(
+        "select c.name as city, l.name, l.aliases, "
+        "extensions.st_y(l.location::extensions.geometry) as lat, "
+        "extensions.st_x(l.location::extensions.geometry) as lng "
+        "from public.landmarks l join public.cities c on c.id = l.city_id "
+        "where l.location is not null"
+    ):
+        out.append({"city": r["city"], "name": r["name"],
+                    "aliases": r["aliases"] or [], "at": (float(r["lat"]), float(r["lng"]))})
+    return out
+
+
+def centre(city: str) -> tuple[float, float]:
+    s, w, n, e = pi.CITIES[city]
+    return (s + n) / 2, (w + e) / 2
+
+
+def build(rows: list[dict], existing: list[dict]):
+    index = pi.Index(existing)
+    keep, skipped = [], []
+    seen: set[tuple[str, str]] = set()
+    for i, r in enumerate(rows, start=2):  # line numbers as a spreadsheet shows them
+        name = (r.get("name") or "").strip()
+        city = (r.get("city") or "").strip()
+        code = (r.get("plus_code") or "").strip()
+        if not code:
+            continue  # not filled in yet
+        why = None
+        if not name or len(name) < 2 or len(name) > 120:
+            why = "name missing or too long"
+        elif city not in pi.CITIES:
+            why = f"city must be one of {', '.join(pi.CITIES)}"
+        else:
+            try:
+                at = plus_codes.to_point(code, *centre(city))
+            except plus_codes.PlusCodeError as e:
+                why = str(e)
+            else:
+                s, w, n, e2 = pi.CITIES[city]
+                if not (s <= at[0] <= n and w <= at[1] <= e2):
+                    why = f"{at} is outside {city}"
+                elif (city, pi.fold(name)) in seen:
+                    why = "listed twice"
+                else:
+                    dup = index.duplicate_of(city, name, at)
+                    if dup:
+                        why = f"already in Kombien ({dup})"
+        if why:
+            skipped.append((i, name, why))
+            continue
+        seen.add((city, pi.fold(name)))
+        kind_raw = (r.get("kind") or "").strip().lower()
+        kind = KINDS.get(kind_raw, kind_raw if "=" in kind_raw else "place=locality")
+        aliases = [a.strip() for a in (r.get("aliases") or "").split(";") if a.strip()][:4]
+        keep.append({"city": city, "name": name, "aliases": aliases, "at": at,
+                     "kind": kind, "query": (r.get("query") or "").strip().lower()})
+    return keep, skipped
+
+
+def migration(places: list[dict], source_name: str) -> str:
+    today = dt.date.today().isoformat()
+    out = [f"-- Places added by hand from Plus Codes looked up on Google Maps ({source_name}).",
+           "-- Generated by supabase/tools/places_from_plus_codes.py; positions are the",
+           "-- centres of the codes (about 14 m). Safe to run again: a place already there",
+           f"-- under the same name is left alone. Generated {today}.", ""]
+    by_city: dict[str, list[dict]] = {}
+    for p in places:
+        by_city.setdefault(p["city"], []).append(p)
+    for city, rows in by_city.items():
+        vals = []
+        for p in rows:
+            al = "array[" + ", ".join(pi.sql_text(a) for a in p["aliases"]) + "]::text[]"
+            vals.append(f"  ({pi.sql_text(p['name'])}, {al}, {p['at'][0]:.6f}, "
+                        f"{p['at'][1]:.6f}, {pi.sql_text(p['kind'])})")
+        out += [f"-- {city}: {len(rows)} places",
+                "insert into public.landmarks (city_id, name, aliases, location, kind, source)",
+                "select c.id, v.name, v.aliases,",
+                "       extensions.st_setsrid(extensions.st_makepoint(v.lng, v.lat), 4326)::extensions.geography,",
+                "       v.kind, 'manual'",
+                "from public.cities c, (values", ",\n".join(vals),
+                ") as v(name, aliases, lat, lng, kind)",
+                f"where c.name = {pi.sql_text(city)}",
+                "on conflict (city_id, name) do nothing;", ""]
+    queries = sorted({p["query"] for p in places if p["query"]})
+    if queries:
+        out += ["-- These searches are answered now: clear them from the missing list.",
+                "delete from public.search_misses where query in ("
+                + ", ".join(pi.sql_text(q) for q in queries) + ");", ""]
+    return "\n".join(out)
+
+
+def main() -> int:
+    ap = argparse.ArgumentParser()
+    ap.add_argument("csv", type=Path)
+    ap.add_argument("--out", type=Path, help="migration file (default: supabase/migrations/<date>_manual_places.sql)")
+    ap.add_argument("--offline", action="store_true",
+                    help="do not read the live database: compare with the OpenStreetMap import only")
+    args = ap.parse_args()
+
+    with args.csv.open(newline="", encoding="utf-8-sig") as f:
+        rows = list(csv.DictReader(f))
+    existing = pi.load_existing() if args.offline else live_places()
+    keep, skipped = build(rows, existing)
+
+    print(f"{len(keep)} to add, {len(skipped)} skipped")
+    for p in keep:
+        print(f"  + {p['city']}: {p['name']} ({p['kind']}) at {p['at'][0]:.5f}, {p['at'][1]:.5f}")
+    for line, name, why in skipped:
+        print(f"  - line {line}: {name or '(no name)'}: {why}")
+    if not keep:
+        return 0
+
+    stamp = dt.datetime.now().strftime("%Y%m%d%H%M%S")
+    out = args.out or (pi.SUPABASE / "migrations" / f"{stamp}_manual_places.sql")
+    out.write_text(migration(keep, args.csv.name), encoding="utf-8")
+    print(f"\nwrote {out}\nReview it, then: supabase db push --linked", file=sys.stderr)
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())

@@ -39,7 +39,7 @@ class Build(unittest.TestCase):
 
     def test_outside_the_city_and_bad_codes_are_explained(self):
         _, skipped = ppc.build(
-            [row(name="A", plus_code="6GGGGGGG+22"), row(name="B", plus_code="hello")],
+            [row(name="Place Alpha", plus_code="6GGGGGGG+22"), row(name="Place Beta", plus_code="hello")],
             EXISTING)
         self.assertIn("outside", skipped[0][2])
         self.assertIn("Plus Code", skipped[1][2])

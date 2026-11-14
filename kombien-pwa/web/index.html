@@ -68,6 +68,42 @@
       slow.classList.add('show');
     }, 5000);
 
+    // If the app has not shown its first screen after 12 seconds, say so,
+    // with a way out and the technical reason, instead of pulsing forever.
+    // (It opens from the phone with no connection; if it does not, this is
+    // how we find out why.)
+    var bootErrors = [];
+    window.addEventListener('error', function (e) {
+      bootErrors.push(String(e.message || e.filename || 'error').slice(0, 120));
+    });
+    window.addEventListener('unhandledrejection', function (e) {
+      bootErrors.push(String((e.reason && e.reason.message) || e.reason || 'rejected').slice(0, 120));
+    });
+    setTimeout(function () {
+      var l = document.getElementById('loading');
+      var slow = document.getElementById('slow');
+      if (!l || !slow) return;
+      var fr = /^fr/i.test(navigator.language);
+      slow.textContent = fr
+        ? 'Kombien met plus de temps que prévu à s’ouvrir.'
+        : 'Kombien is taking longer than usual to open.';
+      slow.classList.add('show');
+      var b = document.createElement('button');
+      b.textContent = fr ? 'Réessayer' : 'Try again';
+      b.style.cssText = 'margin-top:14px;padding:10px 22px;border:0;border-radius:12px;' +
+        'background:#F5A340;color:#1F1F1F;font:600 15px system-ui,sans-serif;';
+      b.onclick = function () { location.reload(); };
+      l.appendChild(b);
+      var d = document.createElement('p');
+      d.style.cssText = 'max-width:280px;margin:14px 0 0;text-align:center;' +
+        'font:400 11px/1.4 system-ui,sans-serif;color:#9A958C;word-break:break-word;';
+      d.textContent = [
+        navigator.onLine ? 'online' : 'offline',
+        'sw:' + (navigator.serviceWorker && navigator.serviceWorker.controller ? 'on' : 'off'),
+      ].concat(bootErrors.slice(0, 2)).join(' · ');
+      l.appendChild(d);
+    }, 12000);
+
     // "Install Kombien" in Settings reads this.
     window.kombienInstall = {
       prompt: null,

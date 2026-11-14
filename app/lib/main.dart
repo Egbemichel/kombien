@@ -18,8 +18,10 @@ import 'theme/kombien_theme.dart';
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   // Connects Supabase when the build was given its URL and key; otherwise
-  // the app runs on built-in sample data.
-  await Backend.init();
+  // the app runs on built-in sample data. It never holds up the first
+  // screen: if it has not finished in 3 seconds the app opens anyway and
+  // the connection becomes ready when it does (offline-first).
+  await Backend.init().timeout(const Duration(seconds: 3), onTimeout: () {});
   runApp(const KombienApp());
 }
 

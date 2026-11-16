@@ -70,38 +70,45 @@ const text = {
 
 const REMINDER_EVERY_HOURS = 66; // "every 3 days", with room for a late run
 
-// A morning nudge: a reason to open Kombien, never a scolding. Rotates every
-// 3 days; the same text goes to everyone on the same day.
+// A morning nudge, and at this stage it asks for ONE thing: a fare report.
+// Reports are what Kombien runs on (a route only shows a range once 3 riders
+// reported it), so every reminder asks riders to add what they paid, never
+// to look a route up. A reason to help, never a scolding. Rotates every
+// 3 days; the same text goes to everyone on the same day. A tap opens the
+// report form (REMINDER_URL).
 const reminders = {
   en: [
-    {
-      title: "Heading out today?",
-      body: "See what locals paid for your route before you hop in.",
-    },
     {
       title: "Paid for a ride lately?",
       body: "Add your fare in a few taps. It helps the next rider.",
     },
     {
-      title: "Know the range first",
-      body: "Open Kombien before you propose a price.",
+      title: "Took a taxi or a moto?",
+      body: "Tell Kombien what you paid. Every fare you add helps riders after you.",
+    },
+    {
+      title: "Your fare matters",
+      body: "Riders count on fares like yours. Add what you paid in a few taps.",
     },
   ],
   fr: [
-    {
-      title: "Tu sors aujourd'hui ?",
-      body: "Vois ce que les gens ont payé sur ton trajet avant de monter.",
-    },
     {
       title: "Un trajet récemment ?",
       body: "Ajoute ton tarif en quelques secondes. Ça aide le prochain passager.",
     },
     {
-      title: "Connais la fourchette",
-      body: "Ouvre Kombien avant de proposer un prix.",
+      title: "Tu as pris un taxi ou une moto ?",
+      body: "Dis à Kombien ce que tu as payé. Chaque tarif aide les passagers après toi.",
+    },
+    {
+      title: "Ton tarif compte",
+      body: "Les passagers comptent sur des tarifs comme le tien. Ajoute ce que tu as payé.",
     },
   ],
 };
+
+// Where a tap on a reminder goes: the report page ("?page=1").
+const REMINDER_URL = "/?page=1";
 
 const updated = {
   en: {
@@ -295,7 +302,7 @@ async function sendReminders(): Promise<number> {
     try {
       await webpush.sendNotification(
         { endpoint: s.endpoint, keys: { p256dh: s.p256dh, auth: s.auth } },
-        JSON.stringify({ ...msg, tag: "reminder", url: "/" }),
+        JSON.stringify({ ...msg, tag: "reminder", url: REMINDER_URL }),
         { TTL: 6 * 3600 }, // stale by the afternoon
       );
       sent++;

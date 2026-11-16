@@ -27,6 +27,19 @@ const LIST = '/precache.json';
 // the previous release keeps running.
 const CRITICAL = ['/', '/flutter_bootstrap.js', '/main.dart.js'];
 
+// The drawing engine (CanvasKit) the page will load. The browser picks one
+// of two variants and the page tells us which (?engine= on this script's
+// address). It is not "warm" in the file list (only one of the two is
+// ever used), so it is added here: the app cannot start without it, and a
+// first visit often loads it before this worker takes control, so it would
+// never be saved by simply watching requests go by.
+const ENGINE = new URL(self.location.href).searchParams.get('engine');
+const ENGINE_FILES = ENGINE === 'chromium'
+  ? ['/canvaskit/chromium/canvaskit.js', '/canvaskit/chromium/canvaskit.wasm']
+  : ENGINE === 'full'
+    ? ['/canvaskit/canvaskit.js', '/canvaskit/canvaskit.wasm']
+    : [];
+
 const mine = (key) => key.startsWith('kombien-') && key !== CACHE;
 
 async function readList(cache) {
@@ -61,6 +74,11 @@ async function install() {
     return null;
   }
 
+  // The engine this browser needs is warm: downloaded now (or carried over
+  // when unchanged), and part of what must succeed.
+  const engine = ENGINE_FILES.filter((p) => list.files[p]);
+  for (const p of engine) if (!list.warm.includes(p)) list.warm.push(p);
+
   // Everything that is not warm but already held (the engine) is carried
   // over when unchanged; the warm files are carried or downloaded.
   const wanted = new Set(list.warm);
@@ -90,7 +108,7 @@ async function install() {
     }
   }
   await Promise.all(Array.from({ length: 6 }, worker));
-  if (CRITICAL.some((p) => failed.includes(p))) {
+  if ([...CRITICAL, ...engine].some((p) => failed.includes(p))) {
     await caches.delete(CACHE);
     throw new Error('could not save the app');
   }
@@ -183,7 +201,10 @@ self.addEventListener('notificationclick', (event) => {
       .then((windows) => {
         for (const w of windows) {
           if (new URL(w.url).origin === self.location.origin && 'focus' in w) {
-            return w.focus();
+            // A notification for a particular page (a reminder opens the
+            // report form, "?page=1") takes an open app there.
+            return w.focus().then((c) =>
+              c && 'navigate' in c && /[?&]page=/.test(url) ? c.navigate(url) : c);
           }
         }
         return self.clients.openWindow(url);

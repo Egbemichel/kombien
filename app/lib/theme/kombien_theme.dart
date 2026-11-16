@@ -6,6 +6,10 @@ import 'kombien_theme_extension.dart';
 
 /// Light/dark ThemeData built from the brand tokens in
 /// `brand/tokens/colors.json` and `brand/tokens/typography.json`.
+/// The app's type is DM Sans (bundled in assets/google_fonts), also for what
+/// Material draws by itself. The theme used to ask for Space Grotesk and
+/// JetBrains Mono, which are not bundled: five font downloads on every
+/// launch, and a plain fallback font whenever the connection was gone.
 class KombienTheme {
   KombienTheme._();
 
@@ -22,14 +26,14 @@ class KombienTheme {
         onSurface: textPrimary,
         error: KombienColors.error,
       ),
-      textTheme: GoogleFonts.spaceGroteskTextTheme(
+      textTheme: GoogleFonts.dmSansTextTheme(
         base.textTheme,
       ).apply(bodyColor: textPrimary, displayColor: textPrimary),
       appBarTheme: AppBarTheme(
         backgroundColor: KombienColors.lightBackgroundPrimary,
         foregroundColor: textPrimary,
         elevation: 0,
-        titleTextStyle: GoogleFonts.spaceGrotesk(
+        titleTextStyle: GoogleFonts.dmSans(
           fontWeight: FontWeight.w700,
           fontSize: 20,
           color: textPrimary,
@@ -41,7 +45,7 @@ class KombienTheme {
         style: ElevatedButton.styleFrom(
           backgroundColor: KombienColors.mango,
           foregroundColor: KombienColors.accentOnAccent,
-          textStyle: GoogleFonts.spaceGrotesk(fontWeight: FontWeight.w500),
+          textStyle: GoogleFonts.dmSans(fontWeight: FontWeight.w500),
         ),
       ),
       extensions: [KombienThemeExtension.light(textPrimary: textPrimary)],
@@ -61,14 +65,14 @@ class KombienTheme {
         onSurface: textPrimary,
         error: KombienColors.error,
       ),
-      textTheme: GoogleFonts.spaceGroteskTextTheme(
+      textTheme: GoogleFonts.dmSansTextTheme(
         base.textTheme,
       ).apply(bodyColor: textPrimary, displayColor: textPrimary),
       appBarTheme: AppBarTheme(
         backgroundColor: KombienColors.darkBackgroundPrimary,
         foregroundColor: textPrimary,
         elevation: 0,
-        titleTextStyle: GoogleFonts.spaceGrotesk(
+        titleTextStyle: GoogleFonts.dmSans(
           fontWeight: FontWeight.w700,
           fontSize: 20,
           color: textPrimary,
@@ -80,7 +84,7 @@ class KombienTheme {
         style: ElevatedButton.styleFrom(
           backgroundColor: KombienColors.mango,
           foregroundColor: KombienColors.accentOnAccent,
-          textStyle: GoogleFonts.spaceGrotesk(fontWeight: FontWeight.w500),
+          textStyle: GoogleFonts.dmSans(fontWeight: FontWeight.w500),
         ),
       ),
       extensions: [KombienThemeExtension.dark(textPrimary: textPrimary)],

@@ -1,4 +1,14 @@
-# Update and morning-reminder notifications
+# Update, place-added, thank-you and morning-reminder notifications
+
+Also sent by the `notify-unlocked` function (see its header for every action):
+
+| Topic / action | When |
+|---|---|
+| `places` | **"<place> is now on Kombien"** to riders who searched for it (with notifications on) or used "Tell us about it"; part of the daily job, or `{"job":"places"}` by hand |
+| thank-you | `{"thanks":true}`, called by the app after a 👍 on a fare range: at most one a day per rider, never at night, does not use up the day's notification |
+
+Both stay inside the quiet hours (21:00-07:00) and the one-a-day rule, except
+the thank-you, which has its own once-a-day limit.
 
 Riders who turned notifications on (an anonymous browser subscription, nothing
 else) can get three kinds of notification:
@@ -25,6 +35,29 @@ Every day is too much, and every 2 days still feels like nagging. Every 3 days
 is about ten a month. Change `REMINDER_EVERY_HOURS` in
 `supabase/functions/notify-unlocked/index.ts` (66 = every 3 days with room for
 a late run; 42 = every 2 days) and the texts in `reminders`.
+
+## Held-back notices at 07:00 sharp
+
+Notices held back overnight (an update announcement, an unlocked-fares notice,
+a place that was added) already go out first thing in the 08:30 reminders job.
+To send them the moment quiet hours end, at **07:00 Cameroon time (06:00 UTC)**,
+make two edits in `.github/workflows/push-reminders.yml` (a workflow file, so
+it needs a push with the `workflow` permission, or the GitHub web editor):
+
+```yaml
+on:
+  schedule:
+    - cron: "0 6 * * *"     # 07:00 WAT: only what was held back overnight
+    - cron: "30 7 * * *"    # 08:30 WAT: the same, then the morning reminder
+```
+
+and in the `curl` step, ask for the right job for the schedule that started it:
+
+```yaml
+          -d "{\"job\":\"${{ github.event.schedule == '0 6 * * *' && 'flush' || 'reminders' }}\"}"
+```
+
+(The function's `{"job":"flush"}` action does the 07:00 run.)
 
 ## One-time setup
 

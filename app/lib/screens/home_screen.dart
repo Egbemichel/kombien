@@ -91,8 +91,21 @@ class _HomeScreenState extends State<HomeScreen> {
     if (from != null && to != null && r != null) {
       KAppScope.of(context).rateRange(from, to, r, helpful);
     }
-    _thanks();
+    // 👍 is simply thanked, here and (with notifications on) on the phone;
+    // 👎 keeps the feedback note.
+    if (helpful) {
+      KAppScope.of(context).thankForThumbsUp();
+      _thumbsUp();
+    } else {
+      _thanks();
+    }
   }
+
+  void _thumbsUp() => _toasts.currentState?.show(
+    context.l10n.thumbsUpLabel,
+    context.l10n.thumbsUpTitle,
+    context.l10n.thumbsUpBody,
+  );
 
   void _thanks() => _toasts.currentState?.show(
     context.l10n.feedbackThanksLabel,
@@ -208,14 +221,16 @@ class _HomeScreenState extends State<HomeScreen> {
         ? const SizedBox(width: double.infinity)
         : Column(
             children: [
-              KToastHost(key: _toasts),
-              const SizedBox(height: 14),
               KFeedbackRow(onUp: () => _rate(true), onDown: () => _rate(false)),
             ],
           ),
   );
 
   @override
-  Widget build(BuildContext context) =>
-      KRoutePicker(onRoute: _onRoute, below: _results(), bottom: _feedback());
+  Widget build(BuildContext context) => KRoutePicker(
+    onRoute: _onRoute,
+    below: _results(),
+    bottom: _feedback(),
+    toasts: _toasts,
+  );
 }

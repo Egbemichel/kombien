@@ -645,7 +645,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get pushUnlockedRow =>
-      'Tarifs débloqués, mises à jour, rappels du matin';
+      'Tarifs débloqués, lieux ajoutés, mises à jour, rappels du matin';
 
   @override
   String get pushOfferLabel => 'Restez informé';
@@ -655,7 +655,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get pushOfferBody =>
-      'Sachez quand votre signalement débloque des tarifs, quand Kombien est mis à jour, et recevez un rappel le matin tous les quelques jours.';
+      'Sache quand ton signalement débloque des tarifs, quand un lieu que tu cherchais est ajouté, quand Kombien est mis à jour, et reçois un rappel le matin tous les quelques jours.';
 
   @override
   String get pushOfferAction => 'Activer';
@@ -728,7 +728,7 @@ class AppLocalizationsFr extends AppLocalizations {
   String get addPlaceYourself => 'Ajouter ce lieu';
 
   @override
-  String get addYourselfLink => 'Pas là ? Ajoute-le toi-même';
+  String get addYourselfLink => 'Pas là ? Parle-nous-en';
 
   @override
   String get newPlaceTitle => 'Ajouter un lieu';
@@ -758,7 +758,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String gpsWeak(int m) {
-    return 'Signal trop faible (environ $m m d\'écart). Sors dehors, ou choisis près d\'un lieu';
+    return 'Signal trop faible (environ $m m d\'écart). Sors dehors, ou choisis « Je n\'y suis pas »';
   }
 
   @override
@@ -789,4 +789,43 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get newPlaceAction => 'Ajouter ce lieu';
+
+  @override
+  String get tellUsTitle => 'Parle-nous de ce lieu';
+
+  @override
+  String get areYouThere => 'Es-tu sur place ?';
+
+  @override
+  String get whereNotThere => 'Je n\'y suis pas';
+
+  @override
+  String get notThereHint => 'Où est-ce ? (près de quoi ?)';
+
+  @override
+  String get notThereNote =>
+      'On va le chercher et l\'ajouter. Tu seras prévenu quand il sera sur Kombien, si les notifications sont activées.';
+
+  @override
+  String get gpsOffHere =>
+      'Position introuvable. Autorise la localisation, ou choisis « Je n\'y suis pas »';
+
+  @override
+  String get suggestThanksLabel => 'Merci !';
+
+  @override
+  String get suggestThanksTitle => 'On s\'en occupe';
+
+  @override
+  String get suggestThanksBody =>
+      'On va le trouver et l\'ajouter. Avec les notifications, tu sauras quand il est là.';
+
+  @override
+  String get thumbsUpLabel => 'Utile';
+
+  @override
+  String get thumbsUpTitle => 'Merci !';
+
+  @override
+  String get thumbsUpBody => 'Content que la fourchette t\'ait aidé.';
 }

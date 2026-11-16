@@ -1229,7 +1229,7 @@ abstract class AppLocalizations {
   /// No description provided for @pushUnlockedRow.
   ///
   /// In en, this message translates to:
-  /// **'Fares unlocked, updates, morning reminders'**
+  /// **'Fares unlocked, places added, updates, morning reminders'**
   String get pushUnlockedRow;
 
   /// No description provided for @pushOfferLabel.
@@ -1247,7 +1247,7 @@ abstract class AppLocalizations {
   /// No description provided for @pushOfferBody.
   ///
   /// In en, this message translates to:
-  /// **'Hear when your report unlocks fares, when Kombien is updated, and a morning reminder every few days.'**
+  /// **'Hear when your report unlocks fares, when a place you looked for is added, when Kombien is updated, and a morning reminder every few days.'**
   String get pushOfferBody;
 
   /// No description provided for @pushOfferAction.
@@ -1379,7 +1379,7 @@ abstract class AppLocalizations {
   /// No description provided for @addYourselfLink.
   ///
   /// In en, this message translates to:
-  /// **'Not there? Add it yourself'**
+  /// **'Not there? Tell us about it'**
   String get addYourselfLink;
 
   /// No description provided for @newPlaceTitle.
@@ -1433,7 +1433,7 @@ abstract class AppLocalizations {
   /// No description provided for @gpsWeak.
   ///
   /// In en, this message translates to:
-  /// **'Signal too weak (about {m} m off). Go outside, or choose near a place'**
+  /// **'Signal too weak (about {m} m off). Go outside, or choose \"I\'m not there\"'**
   String gpsWeak(int m);
 
   /// No description provided for @gpsOff.
@@ -1489,6 +1489,78 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Add this place'**
   String get newPlaceAction;
+
+  /// No description provided for @tellUsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Tell us about this place'**
+  String get tellUsTitle;
+
+  /// No description provided for @areYouThere.
+  ///
+  /// In en, this message translates to:
+  /// **'Are you there now?'**
+  String get areYouThere;
+
+  /// No description provided for @whereNotThere.
+  ///
+  /// In en, this message translates to:
+  /// **'I\'m not there'**
+  String get whereNotThere;
+
+  /// No description provided for @notThereHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Where is it? (near what?)'**
+  String get notThereHint;
+
+  /// No description provided for @notThereNote.
+  ///
+  /// In en, this message translates to:
+  /// **'We\'ll look it up and add it. You\'ll hear when it\'s on Kombien, if notifications are on.'**
+  String get notThereNote;
+
+  /// No description provided for @gpsOffHere.
+  ///
+  /// In en, this message translates to:
+  /// **'Can\'t see your position. Allow location, or choose \"I\'m not there\"'**
+  String get gpsOffHere;
+
+  /// No description provided for @suggestThanksLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Thank you!'**
+  String get suggestThanksLabel;
+
+  /// No description provided for @suggestThanksTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'We\'ll look into it'**
+  String get suggestThanksTitle;
+
+  /// No description provided for @suggestThanksBody.
+  ///
+  /// In en, this message translates to:
+  /// **'We\'ll find it and add it. With notifications on, you\'ll hear when it\'s here.'**
+  String get suggestThanksBody;
+
+  /// No description provided for @thumbsUpLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Helpful'**
+  String get thumbsUpLabel;
+
+  /// No description provided for @thumbsUpTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Thank you!'**
+  String get thumbsUpTitle;
+
+  /// No description provided for @thumbsUpBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Glad the fare range helped.'**
+  String get thumbsUpBody;
 }
 
 class _AppLocalizationsDelegate

@@ -17,6 +17,7 @@ import '../l10n/app_localizations.dart';
 import '../services/backend.dart';
 import 'release.dart';
 import '../services/location_service.dart';
+import '../data/place_requests.dart';
 import '../services/push.dart';
 
 /// The app's shared, persisted state, kept deliberately small: plain
@@ -32,6 +33,7 @@ class KAppState {
     SearchMissLog? searchMisses,
     GooglePlaces? googlePlaces,
     RiderPlaces? riderPlaces,
+    PlaceRequests? placeRequests,
     CityPacks? packs,
     PushClient? push,
   }) : this._(
@@ -45,6 +47,7 @@ class KAppState {
          searchMisses: searchMisses,
          googlePlaces: googlePlaces,
          riderPlaces: riderPlaces ?? RiderPlaces(),
+         placeRequests: placeRequests,
        );
 
   KAppState._(
@@ -58,7 +61,9 @@ class KAppState {
     SearchMissLog? searchMisses,
     GooglePlaces? googlePlaces,
     required this.riderPlaces,
+    PlaceRequests? placeRequests,
   }) : push = push ?? PushClient.standard(),
+       placeRequests = placeRequests ?? PlaceRequests(),
        problems = problems ?? ProblemRepository(),
        searchMisses = searchMisses ?? SearchMissLog(),
        googlePlaces = googlePlaces ?? GooglePlaces(),
@@ -106,6 +111,10 @@ class KAppState {
   final GooglePlaces googlePlaces;
   final RiderPlaces riderPlaces;
 
+  /// "Tell us about it" (places saved for review), and the searches of riders
+  /// with notifications on, kept to tell them when the place is added.
+  final PlaceRequests placeRequests;
+
   /// For a search that found nothing: places other riders already added that
   /// match (no Google involved), else Google's suggestions. Never throws.
   Future<MissingPlaceHelp> helpWithMissingPlace(String typed) async {
@@ -139,12 +148,27 @@ class KAppState {
     where: place.where,
   );
 
-  /// A search that found nothing and was left alone: the typed words only.
-  Future<void> logSearchMiss(String typed) => searchMisses.record(
-    typed,
-    city: myCity.value,
-    locale: language.value.languageCode,
-  );
+  /// A search that found nothing and was left alone: the typed words, with
+  /// no rider identity. A rider with notifications on also has it kept as
+  /// theirs, so they are told when the place is added.
+  Future<void> logSearchMiss(String typed) async {
+    final city = myCity.value, locale = language.value.languageCode;
+    if (pushOn.value) {
+      unawaited(placeRequests.watch(typed, city: city, locale: locale));
+    }
+    await searchMisses.record(typed, city: city, locale: locale);
+  }
+
+  /// "Tell us about it": a place the rider could not find, saved for review
+  /// (kept on the phone until it can be sent). False when the name cannot be
+  /// sent at all.
+  Future<bool> suggestPlace(String name, {String? note}) =>
+      placeRequests.suggest(
+        name,
+        note: note,
+        city: myCity.value,
+        locale: language.value.languageCode,
+      );
 
   Future<void> reportProblem(ProblemReport report) async {
     try {
@@ -322,6 +346,12 @@ class KAppState {
     }
   }
 
+  /// A 👍 on a fare range: thanked on the phone too, when notifications are
+  /// on (the server allows one a day and never at night).
+  void thankForThumbsUp() {
+    if (pushOn.value) unawaited(push.thanks());
+  }
+
   // ------------------------------------------------------------ sync
 
   Timer? _syncTimer;
@@ -346,6 +376,7 @@ class KAppState {
     await sendWaitingReports();
     await problems.sendWaiting().catchError((_) {});
     await searchMisses.sendWaiting();
+    await placeRequests.sendWaiting();
     await keepCityPack();
     await checkUnlocks();
   }
@@ -606,6 +637,8 @@ class KAppState {
     pushOn.value = false;
     await _prefs?.setBool(_pushOnKey, false);
     await push.disable();
+    // Nobody to tell any more: forget the places this phone searched for.
+    unawaited(placeRequests.forget());
   }
 
   /// On open: notifications on only if still allowed by the browser, and

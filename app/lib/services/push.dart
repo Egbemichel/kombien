@@ -35,6 +35,10 @@ abstract class PushClient {
   /// A test notification to this phone, now. 'sent', or why not.
   Future<String> sendTest();
 
+  /// A thank-you notification after a 👍 on a fare range (at most one a day,
+  /// never at night; the server decides). Never throws.
+  Future<void> thanks();
+
   factory PushClient.standard() => const KombienPush();
 }
 
@@ -103,6 +107,9 @@ class KombienPush implements PushClient {
 
   @override
   Future<void> flush() => _call({'flush': true});
+
+  @override
+  Future<void> thanks() => _call({'thanks': true});
 
   @override
   Future<String> sendTest() async {

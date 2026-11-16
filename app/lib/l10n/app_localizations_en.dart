@@ -645,7 +645,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get notifications => 'Notifications';
 
   @override
-  String get pushUnlockedRow => 'Fares unlocked, updates, morning reminders';
+  String get pushUnlockedRow =>
+      'Fares unlocked, places added, updates, morning reminders';
 
   @override
   String get pushOfferLabel => 'Stay in the loop';
@@ -655,7 +656,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get pushOfferBody =>
-      'Hear when your report unlocks fares, when Kombien is updated, and a morning reminder every few days.';
+      'Hear when your report unlocks fares, when a place you looked for is added, when Kombien is updated, and a morning reminder every few days.';
 
   @override
   String get pushOfferAction => 'Turn on';
@@ -728,7 +729,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get addPlaceYourself => 'Add this place';
 
   @override
-  String get addYourselfLink => 'Not there? Add it yourself';
+  String get addYourselfLink => 'Not there? Tell us about it';
 
   @override
   String get newPlaceTitle => 'Add a place';
@@ -758,7 +759,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String gpsWeak(int m) {
-    return 'Signal too weak (about $m m off). Go outside, or choose near a place';
+    return 'Signal too weak (about $m m off). Go outside, or choose \"I\'m not there\"';
   }
 
   @override
@@ -789,4 +790,43 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get newPlaceAction => 'Add this place';
+
+  @override
+  String get tellUsTitle => 'Tell us about this place';
+
+  @override
+  String get areYouThere => 'Are you there now?';
+
+  @override
+  String get whereNotThere => 'I\'m not there';
+
+  @override
+  String get notThereHint => 'Where is it? (near what?)';
+
+  @override
+  String get notThereNote =>
+      'We\'ll look it up and add it. You\'ll hear when it\'s on Kombien, if notifications are on.';
+
+  @override
+  String get gpsOffHere =>
+      'Can\'t see your position. Allow location, or choose \"I\'m not there\"';
+
+  @override
+  String get suggestThanksLabel => 'Thank you!';
+
+  @override
+  String get suggestThanksTitle => 'We\'ll look into it';
+
+  @override
+  String get suggestThanksBody =>
+      'We\'ll find it and add it. With notifications on, you\'ll hear when it\'s here.';
+
+  @override
+  String get thumbsUpLabel => 'Helpful';
+
+  @override
+  String get thumbsUpTitle => 'Thank you!';
+
+  @override
+  String get thumbsUpBody => 'Glad the fare range helped.';
 }

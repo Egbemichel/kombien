@@ -16,6 +16,11 @@ has been 3 days", not "you are somewhere".
 
 ## Why every 3 days
 
+At this stage every reminder asks riders to **report a fare they paid**, not
+to look a route up: reports are what Kombien runs on, and a route shows a range
+only once 3 riders reported it. A tap opens the report form. (When there is
+plenty of data, a lookup reminder can join the rotation.)
+
 Every day is too much, and every 2 days still feels like nagging. Every 3 days
 is about ten a month. Change `REMINDER_EVERY_HOURS` in
 `supabase/functions/notify-unlocked/index.ts` (66 = every 3 days with room for

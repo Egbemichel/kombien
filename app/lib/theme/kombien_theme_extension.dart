@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 import 'kombien_colors.dart';
 import 'kombien_typography.dart';
@@ -25,13 +26,22 @@ class KombienThemeExtension extends ThemeExtension<KombienThemeExtension> {
   final Color backgroundSecondary;
   final Color border;
 
+  /// Data, price and timestamp text: DM Sans with digits of equal width (the
+  /// mono face of the style guide is not bundled, so it is not downloaded).
+  static TextStyle _data({required FontWeight weight, required Color color}) =>
+      GoogleFonts.dmSans(
+        fontWeight: weight,
+        color: color,
+        fontFeatures: const [FontFeature.tabularFigures()],
+      );
+
   static KombienThemeExtension light({required Color textPrimary}) =>
       KombienThemeExtension(
-        dataValue: KombienTypography.mono(
+        dataValue: _data(
           weight: KombienTypography.monoRegular,
           color: textPrimary,
         ),
-        dataValueEmphasis: KombienTypography.mono(
+        dataValueEmphasis: _data(
           weight: KombienTypography.monoMedium,
           color: textPrimary,
         ),
@@ -44,11 +54,11 @@ class KombienThemeExtension extends ThemeExtension<KombienThemeExtension> {
 
   static KombienThemeExtension dark({required Color textPrimary}) =>
       KombienThemeExtension(
-        dataValue: KombienTypography.mono(
+        dataValue: _data(
           weight: KombienTypography.monoRegular,
           color: textPrimary,
         ),
-        dataValueEmphasis: KombienTypography.mono(
+        dataValueEmphasis: _data(
           weight: KombienTypography.monoMedium,
           color: textPrimary,
         ),

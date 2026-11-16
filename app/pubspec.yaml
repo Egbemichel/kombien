@@ -68,6 +68,17 @@ flutter:
   # the material Icons class.
   uses-material-design: true
 
+  # Roboto is the engine's default font. When the app does not ship a family
+  # called Roboto, the web engine downloads one from fonts.gstatic.com before
+  # it draws the first screen and waits for it: on a weak connection that
+  # request stalls and the app never opens. Shipping it removes the wait (and
+  # the dependency on a server we do not run). Apache 2.0, from the Flutter
+  # SDK's material fonts.
+  fonts:
+    - family: Roboto
+      fonts:
+        - asset: assets/fonts/Roboto-Regular.ttf
+
   assets:
     - assets/brand/
     - assets/illustrations/

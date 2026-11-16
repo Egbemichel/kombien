@@ -49,7 +49,8 @@ else
 fi
 
 cd "$APP"
-"$FLUTTER" pub get
+# PUB_OFFLINE=1: use the packages already on this machine (slow connection).
+"$FLUTTER" pub get ${PUB_OFFLINE:+--offline}
 "$FLUTTER" build web --release \
   --base-href / \
   --pwa-strategy=none \

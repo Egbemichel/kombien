@@ -201,7 +201,15 @@
       // No controller yet: a first visit, not an update.
       var updating = !!navigator.serviceWorker.controller;
       window.addEventListener('load', function () {
-        navigator.serviceWorker.register('sw.js').then(function (reg) {
+        // Which engine file this browser will load (the same rule Flutter's
+        // loader uses), so the service worker saves exactly that one and
+        // the app can start with no connection.
+        var chromiumEngine = typeof Intl.v8BreakIterator !== 'undefined' &&
+          typeof Intl.Segmenter !== 'undefined' &&
+          typeof ImageDecoder !== 'undefined' &&
+          (navigator.vendor === 'Google Inc.' || navigator.userAgent.indexOf('Edg/') >= 0);
+        var engine = chromiumEngine ? 'chromium' : 'full';
+        navigator.serviceWorker.register('sw.js?engine=' + engine).then(function (reg) {
           reg.addEventListener('updatefound', function () {
             var worker = reg.installing;
             if (!worker) return;

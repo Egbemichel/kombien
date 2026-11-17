@@ -38,26 +38,21 @@ a late run; 42 = every 2 days) and the texts in `reminders`.
 
 ## Held-back notices at 07:00 sharp
 
-Notices held back overnight (an update announcement, an unlocked-fares notice,
-a place that was added) already go out first thing in the 08:30 reminders job.
-To send them the moment quiet hours end, at **07:00 Cameroon time (06:00 UTC)**,
-make two edits in `.github/workflows/push-reminders.yml` (a workflow file, so
-it needs a push with the `workflow` permission, or the GitHub web editor):
+Notices held back overnight (an update announcement, an unlocked-fares notice)
+already go out first thing in the 08:30 reminders job. To send them the moment
+quiet hours end, at **07:00 Cameroon time (06:00 UTC)**, the workflow needs a
+second schedule. The function side is done and deployed (`{"job":"flush"}`, sends
+only what was held back, behind the same secret). The workflow is a file the
+automation that prepared this may not push, so the finished file is ready to
+paste: [`push-reminders.workflow.yml`](push-reminders.workflow.yml).
 
-```yaml
-on:
-  schedule:
-    - cron: "0 6 * * *"     # 07:00 WAT: only what was held back overnight
-    - cron: "30 7 * * *"    # 08:30 WAT: the same, then the morning reminder
-```
+1. Open `.github/workflows/push-reminders.yml` on GitHub and choose **Edit**.
+2. Replace its contents with `docs/setup/push-reminders.workflow.yml` (without its
+   first four "READY TO PASTE" comment lines).
+3. Commit to `main`. Check the next morning: the Actions tab shows a run at 06:00
+   UTC (`flush`) and one at 07:30 UTC (`reminders`).
 
-and in the `curl` step, ask for the right job for the schedule that started it:
-
-```yaml
-          -d "{\"job\":\"${{ github.event.schedule == '0 6 * * *' && 'flush' || 'reminders' }}\"}"
-```
-
-(The function's `{"job":"flush"}` action does the 07:00 run.)
+Nothing else changes: the 08:30 run still sends the morning reminder.
 
 ## One-time setup
 

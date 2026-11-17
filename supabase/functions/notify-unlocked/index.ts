@@ -16,10 +16,23 @@
 //   Sends what was held back overnight, then the morning nudge: every phone
 //   with the 'reminders' topic that has not had one for 3 days (and none
 //   today), never in quiet hours.
+// POST { job: "flush" }                  (scheduled, 07:00 Cameroon time daily)
+//   Only what was held back overnight (and places added since), the moment
+//   quiet hours end. The 08:30 reminders job still does the same first.
 // POST { announce: "update", key }       (after a release deploys)
 //   "Kombien has been updated", once per key, to phones with the 'updates'
 //   topic; held until the morning when it is quiet hours.
 //   Both need the x-notify-secret header (NOTIFY_SECRET).
+//
+// POST { thanks: true }                  (the app, after a 👍 on a fare range)
+//   A thank-you to the caller's own phones, at most one a day, never at
+//   night. It does not use up the day's notification.
+// POST { job: "places" }                 (also part of job "reminders")
+//   "<place> is now on Kombien" to the riders who asked for a place that has
+//   been added since: they searched for it with notifications on, or used
+//   "Tell us about it" (place_requests, answered_place_requests()). One
+//   notification per rider and run (several places become one), never in
+//   quiet hours, never a second notification the same day.
 //
 // Secrets: VAPID_PUBLIC_KEY, VAPID_PRIVATE_KEY, NOTIFY_SECRET
 // (supabase secrets set).
@@ -118,6 +131,50 @@ const updated = {
   fr: {
     title: "Kombien a été mis à jour",
     body: "Une nouvelle version est prête. Ouvre l'app pour l'avoir.",
+  },
+};
+
+const thanks = {
+  en: {
+    title: "Thank you!",
+    body: "Thanks for letting us know the fare range helped.",
+  },
+  fr: {
+    title: "Merci !",
+    body: "Merci de nous avoir dit que la fourchette de tarifs t'a aidé.",
+  },
+};
+
+// "<place> is now on Kombien": a reminder that they looked for it, that it is
+// here, and that Kombien keeps growing.
+const placeAdded = {
+  en: {
+    one: (place: string, kind: string) => ({
+      title: `${place} is now on Kombien`,
+      body: (kind === "suggestion"
+        ? "You told us about it. It's on the app now, thank you! "
+        : "You searched for it and we hadn't found it yet. It's on the app now. ") +
+        "We're working tirelessly to add more places and make Kombien better.",
+    }),
+    many: (n: number, names: string[]) => ({
+      title: `${n} places you asked for are now on Kombien`,
+      body: `${names.slice(0, 2).join(", ")}${n > 2 ? " and more" : ""}. ` +
+        "We're working tirelessly to add more places and make Kombien better.",
+    }),
+  },
+  fr: {
+    one: (place: string, kind: string) => ({
+      title: `${place} est maintenant sur Kombien`,
+      body: (kind === "suggestion"
+        ? "Tu nous en avais parlé. C'est sur l'app maintenant, merci ! "
+        : "Tu l'avais cherché et on ne l'avait pas encore. C'est sur l'app maintenant. ") +
+        "On travaille sans relâche pour ajouter plus de lieux et améliorer Kombien.",
+    }),
+    many: (n: number, names: string[]) => ({
+      title: `${n} lieux que tu cherchais sont maintenant sur Kombien`,
+      body: `${names.slice(0, 2).join(", ")}${n > 2 ? " et d'autres" : ""}. ` +
+        "On travaille sans relâche pour ajouter plus de lieux et améliorer Kombien.",
+    }),
   },
 };
 
@@ -408,6 +465,154 @@ async function sendTest(by: string | null): Promise<string> {
   return sent > 0 ? "sent" : "not sent";
 }
 
+/**
+ * A thank-you to the caller's own phones after a 👍. At most one a day per
+ * rider and never at night; it does not use up the day's notification.
+ */
+async function sendThanks(by: string | null): Promise<string> {
+  if (!by) return "not signed in";
+  if (!vapid()) return "no keys";
+  const now = new Date();
+  if (allowedFrom(now) > now) return "quiet hours";
+  const { data: subs } = await db
+    .from("push_subscriptions")
+    .select("id, endpoint, p256dh, auth, locale")
+    .eq("user_id", by);
+  if (!subs || subs.length === 0) return "no subscription";
+  const dayAgo = new Date(now.getTime() - DAY).toISOString();
+  const { count } = await db
+    .from("push_outbox")
+    .select("id", { count: "exact", head: true })
+    .in("subscription_id", subs.map((s) => s.id))
+    .eq("payload->>tag", "thanks")
+    .gt("created_at", dayAgo);
+  if ((count ?? 0) > 0) return "already thanked today";
+  let sent = 0;
+  for (const s of subs) {
+    const msg = s.locale === "fr" ? thanks.fr : thanks.en;
+    const payload = { ...msg, tag: "thanks", url: "/" };
+    try {
+      await webpush.sendNotification(
+        { endpoint: s.endpoint, keys: { p256dh: s.p256dh, auth: s.auth } },
+        JSON.stringify(payload),
+        { TTL: 3600 },
+      );
+      sent++;
+      await db.from("push_outbox").insert({
+        subscription_id: s.id,
+        payload,
+        sent_at: now.toISOString(),
+      });
+    } catch (e) {
+      const status = (e as { statusCode?: number }).statusCode;
+      if (status === 404 || status === 410) {
+        await db.from("push_subscriptions").delete().eq("id", s.id);
+      }
+    }
+  }
+  return sent > 0 ? "sent" : "not sent";
+}
+
+type Answered = {
+  request_id: string;
+  user_id: string;
+  kind: string;
+  asked: string;
+  landmark_id: string;
+  place_name: string;
+  locale: string;
+};
+
+/**
+ * "<place> is now on Kombien" for every rider with a request that a place now
+ * answers. Returns how many riders were told.
+ */
+async function notifyPlacesAdded(): Promise<number> {
+  const now = new Date();
+  // Housekeeping first: searches are only kept 90 days, and what was told is
+  // forgotten after 30 (the rider already knows).
+  await db.from("place_requests").delete().eq("kind", "search")
+    .lt("created_at", new Date(now.getTime() - 90 * DAY).toISOString());
+  await db.from("place_requests").delete()
+    .not("notified_at", "is", null)
+    .lt("notified_at", new Date(now.getTime() - 30 * DAY).toISOString());
+
+  if (allowedFrom(now) > now) return 0; // quiet hours: tomorrow morning
+  if (!vapid()) return 0;
+  const { data, error } = await db.rpc("answered_place_requests");
+  if (error || !data || data.length === 0) return 0;
+
+  const byRider = new Map<string, Answered[]>();
+  for (const row of data as Answered[]) {
+    byRider.set(row.user_id, [...(byRider.get(row.user_id) ?? []), row]);
+  }
+
+  const today = watDay(now);
+  let told = 0;
+  for (const [riderId, rows] of byRider) {
+    const { data: subs } = await db
+      .from("push_subscriptions")
+      .select("id, endpoint, p256dh, auth, locale, last_sent_at")
+      .eq("user_id", riderId)
+      .contains("topics", ["places"]);
+    if (!subs || subs.length === 0) {
+      // Notifications are off: there is nobody to tell. Mark it answered so
+      // it is not looked at again.
+      await markAnswered(rows, null);
+      continue;
+    }
+    // One notification a day per phone: if every phone had one today, wait.
+    const free = subs.filter((s) =>
+      !s.last_sent_at || watDay(new Date(s.last_sent_at)) !== today
+    );
+    if (free.length === 0) continue;
+
+    // One message per rider: several places become one notification.
+    const places = [...new Map(rows.map((r) => [r.landmark_id, r])).values()];
+    const lang = (rows[0].locale || free[0].locale) === "fr" ? "fr" : "en";
+    const msg = places.length === 1
+      ? placeAdded[lang].one(places[0].place_name, places[0].kind)
+      : placeAdded[lang].many(places.length, places.map((p) => p.place_name));
+
+    let sentAny = false;
+    for (const s of free) {
+      try {
+        await webpush.sendNotification(
+          { endpoint: s.endpoint, keys: { p256dh: s.p256dh, auth: s.auth } },
+          JSON.stringify({ ...msg, tag: "place-added", url: "/" }),
+          { TTL: 24 * 3600 },
+        );
+        sentAny = true;
+        await db.from("push_subscriptions")
+          .update({ last_sent_at: now.toISOString() }).eq("id", s.id);
+      } catch (e) {
+        const status = (e as { statusCode?: number }).statusCode;
+        if (status === 404 || status === 410) {
+          await db.from("push_subscriptions").delete().eq("id", s.id);
+        }
+      }
+    }
+    if (sentAny) {
+      told++;
+      await markAnswered(rows, now.toISOString());
+    } // else: nothing went out; try again at the next run
+  }
+  return told;
+}
+
+/** Marks requests answered (and told, when [toldAt] is set). */
+async function markAnswered(rows: Answered[], toldAt: string | null) {
+  for (const r of rows) {
+    await db.from("place_requests")
+      .update({
+        status: "added",
+        landmark_id: r.landmark_id,
+        notified_at: toldAt ?? new Date().toISOString(),
+      })
+      .eq("id", r.request_id);
+  }
+}
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: cors });
   if (req.method !== "POST") {
@@ -419,15 +624,38 @@ Deno.serve(async (req) => {
       headers: cors,
     });
   }
-  if (body.job === "reminders" || body.announce === "update") {
+  if (body.thanks === true) {
+    return Response.json({ thanks: await sendThanks(await caller(req)) }, {
+      headers: cors,
+    });
+  }
+  if (body.job === "places") {
     if (!trusted(req)) {
       return new Response("not allowed", { status: 403, headers: cors });
+    }
+    return Response.json({ placesAdded: await notifyPlacesAdded() }, {
+      headers: cors,
+    });
+  }
+  if (body.job === "reminders" || body.job === "flush" ||
+      body.announce === "update") {
+    if (!trusted(req)) {
+      return new Response("not allowed", { status: 403, headers: cors });
+    }
+    if (body.job === "flush") {
+      const sent = await flush();
+      return Response.json({ sent, placesAdded: await notifyPlacesAdded() }, {
+        headers: cors,
+      });
     }
     if (body.job === "reminders") {
       // First, whatever was held back overnight (an update announcement, an
       // unlocked-fares notice); then the morning nudge to those still due.
       const sent = await flush();
-      return Response.json({ sent, reminded: await sendReminders() }, {
+      const reminded = await sendReminders();
+      // Places riders asked for that have been added since the last run.
+      const placesAdded = await notifyPlacesAdded();
+      return Response.json({ sent, reminded, placesAdded }, {
         headers: cors,
       });
     }

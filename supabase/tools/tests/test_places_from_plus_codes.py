@@ -53,12 +53,27 @@ class Build(unittest.TestCase):
 
     def test_the_migration_is_idempotent_and_clears_the_missing_row(self):
         keep, _ = ppc.build(
-            [row(name="O'Neil's", plus_code="6FMHVGRJ+34", query="oneils")], EXISTING)
+            [row(name="O'Neil's", plus_code="6FMHVGRJ+34", query="oneils; one ils")], EXISTING)
         sql = ppc.migration(keep, "x.csv")
         self.assertIn("on conflict (city_id, name) do nothing", sql)
         self.assertIn("'O''Neil''s'", sql)  # quotes are escaped
-        self.assertIn("delete from public.search_misses where query in ('oneils')", sql)
+        self.assertIn("delete from public.search_misses where query in ('one ils', 'oneils')", sql)
         self.assertIn("'manual'", sql)
+
+    def test_riders_who_asked_are_linked_to_the_new_place(self):
+        keep, _ = ppc.build(
+            [row(name="Ancien Troisième", city="Douala", plus_code="2PV3+6J8",
+                 query="ancien troisième; ancien troiseme")], EXISTING)
+        self.assertEqual(keep[0]["queries"], ["ancien troisième", "ancien troiseme"])
+        sql = ppc.migration(keep, "x.csv")
+        self.assertIn("update public.place_requests r", sql)
+        self.assertIn("('ancien troisième', 'Douala', 'Ancien Troisième')", sql)
+        self.assertIn("('ancien troiseme', 'Douala', 'Ancien Troisième')", sql)
+        self.assertIn("r.status = 'open'", sql)
+
+    def test_no_query_no_request_update(self):
+        keep, _ = ppc.build([row(name="No Query", plus_code="6FMHVGRJ+34")], EXISTING)
+        self.assertNotIn("place_requests", ppc.migration(keep, "x.csv"))
 
 
 if __name__ == "__main__":

@@ -299,10 +299,10 @@
     }
   },
   "notifications": "Notifications",
-  "pushUnlockedRow": "Fares unlocked, updates, morning reminders",
+  "pushUnlockedRow": "Fares unlocked, places added, updates, morning reminders",
   "pushOfferLabel": "Stay in the loop",
   "pushOfferTitle": "Want to know when it counts?",
-  "pushOfferBody": "Hear when your report unlocks fares, when Kombien is updated, and a morning reminder every few days.",
+  "pushOfferBody": "Hear when your report unlocks fares, when a place you looked for is added, when Kombien is updated, and a morning reminder every few days.",
   "pushOfferAction": "Turn on",
   "pushOnLabel": "Done",
   "pushOnTitle": "Notifications on",
@@ -338,7 +338,7 @@
   "addPlaceAction": "Use this place",
   "addPlaceFailed": "Couldn't add that place. Check your connection and try again",
   "addPlaceYourself": "Add this place",
-  "addYourselfLink": "Not there? Add it yourself",
+  "addYourselfLink": "Not there? Tell us about it",
   "newPlaceTitle": "Add a place",
   "newPlaceNameHint": "What riders call it",
   "newPlaceWhereTitle": "Where is it?",
@@ -354,7 +354,7 @@
       }
     }
   },
-  "gpsWeak": "Signal too weak (about {m} m off). Go outside, or choose near a place",
+  "gpsWeak": "Signal too weak (about {m} m off). Go outside, or choose \"I'm not there\"",
   "@gpsWeak": {
     "placeholders": {
       "m": {
@@ -370,5 +370,17 @@
   "near200": "About 200 m",
   "near500": "About 500 m",
   "unknownNote": "Other riders will find it by its name. It won't show up by distance.",
-  "newPlaceAction": "Add this place"
+  "newPlaceAction": "Add this place",
+  "tellUsTitle": "Tell us about this place",
+  "areYouThere": "Are you there now?",
+  "whereNotThere": "I'm not there",
+  "notThereHint": "Where is it? (near what?)",
+  "notThereNote": "We'll look it up and add it. You'll hear when it's on Kombien, if notifications are on.",
+  "gpsOffHere": "Can't see your position. Allow location, or choose \"I'm not there\"",
+  "suggestThanksLabel": "Thank you!",
+  "suggestThanksTitle": "We'll look into it",
+  "suggestThanksBody": "We'll find it and add it. With notifications on, you'll hear when it's here.",
+  "thumbsUpLabel": "Helpful",
+  "thumbsUpTitle": "Thank you!",
+  "thumbsUpBody": "Glad the fare range helped."
 }

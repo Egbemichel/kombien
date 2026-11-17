@@ -1,12 +1,22 @@
 # Places riders add themselves
 
-When a rider can't find a place, they can add it: **Add this place** on the
-not-found card (or **Not there? Add it yourself** under Google's suggestions).
-It is saved as a place everyone can find and report fares against.
+When a rider can't find a place, **Tell us about it** (on the not-found card, or
+**Not there? Tell us about it** under Google's suggestions and under results
+that are not the place meant) opens one sheet: the name, and **"Are you there
+now?"**
 
-## How a rider says where it is
+- **I'm here now** (location on): the place is added at once, where they stand,
+  and everyone can find it and report fares against it. Rules below.
+- **I'm not there**: nothing is added. The name and an optional note ("near
+  what?") are saved for you in the missing list
+  ([missing-places.md](missing-places.md)), and the rider is told when you add it.
 
-Nothing can prove a rider is at the place, so they choose how they know:
+The server still accepts the other two ways of saying where a place is (near a
+known place, or not sure), but the app no longer offers them.
+
+## How a rider says where it is (the server's rules)
+
+Nothing can prove a rider is at the place, so the server judges each answer:
 
 | Choice | What is sent | What the server requires |
 |---|---|---|

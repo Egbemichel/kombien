@@ -10,6 +10,7 @@ import 'package:kombien/components/k_controls.dart';
 import 'package:kombien/data/city_pack.dart';
 import 'package:kombien/data/google_places.dart';
 import 'package:kombien/data/landmark_repository.dart';
+import 'package:kombien/data/place_requests.dart';
 import 'package:kombien/data/rider_places.dart';
 import 'package:kombien/data/search_miss_log.dart';
 import 'package:kombien/main.dart';
@@ -218,13 +219,9 @@ void main() {
 
     await tester.tap(find.text('Tell us about it'));
     await tester.pumpAndSettle();
-    expect(find.text('Something not right?'), findsOneWidget);
-    // "A place is missing", already chosen, with what was typed.
+    expect(find.text('Tell us about this place'), findsOneWidget);
+    // What they typed is already the name.
     expect(find.text('Dispensaire Messasi'), findsWidgets);
-    await tester.tap(find.text('Send'));
-    await tester.pumpAndSettle();
-    expect(find.text('Problem reported'), findsOneWidget);
-    await tester.pumpAndSettle(const Duration(seconds: 5));
   });
 
   Future<(KAppState, List<Map<String, Object?>>)> missingPlaceApp(
@@ -232,6 +229,7 @@ void main() {
     GooglePlaces? google,
     RiderPlaces? riders,
     FakeLocation? location,
+    PlaceRequests? requests,
   }) async {
     tester.view.physicalSize = const Size(402, 874);
     tester.view.devicePixelRatio = 1;
@@ -244,6 +242,7 @@ void main() {
       searchMisses: SearchMissLog(send: (row) async => logged.add(row)),
       googlePlaces: google,
       riderPlaces: riders,
+      placeRequests: requests,
     );
     await state.load();
     await tester.pumpWidget(KombienApp(showSplash: false, state: state));
@@ -261,15 +260,15 @@ void main() {
   FakeLocation phoneAt(PositionFix? fix) =>
       FakeLocation(current: LocationAccess.granted, fixResult: fix);
 
-  /// Searches for a place Kombien lacks and opens "Add a place".
+  /// Searches for a place Kombien lacks and opens "Tell us about this place".
   Future<void> openAddPlace(WidgetTester tester, String typed) async {
     await tester.enterText(find.byType(TextField).at(1), typed);
     await tester.pumpAndSettle();
     await tester.pump(const Duration(seconds: 1));
     await tester.pumpAndSettle();
-    await tester.tap(find.text('Add this place'));
+    await tester.tap(find.text('Tell us about it'));
     await tester.pumpAndSettle();
-    expect(find.text('Add a place'), findsOneWidget);
+    expect(find.text('Tell us about this place'), findsOneWidget);
   }
 
   /// The "Add this place" button in the sheet.
@@ -321,7 +320,7 @@ void main() {
     ]);
     // The place is now chosen like any other, and the sheet is gone.
     expect(find.widgetWithText(TextField, 'Sino Mart'), findsOneWidget);
-    expect(find.text('Add a place'), findsNothing);
+    expect(find.text('Tell us about this place'), findsNothing);
   });
 
   testWidgets('add a place: a weak signal cannot be used, and the rider is '
@@ -344,7 +343,7 @@ void main() {
 
     expect(
       find.text(
-        'Signal too weak (about 250 m off). Go outside, or choose near a place',
+        'Signal too weak (about 250 m off). Go outside, or choose "I\'m not there"',
       ),
       findsOneWidget,
     );
@@ -368,79 +367,81 @@ void main() {
 
     expect(
       find.text(
-        "Can't see your position. Allow location, or choose near a place",
+        'Can\'t see your position. Allow location, or choose "I\'m not there"',
       ),
       findsOneWidget,
     );
     expect(tester.widget<KButton>(addButton()).onPressed, isNull);
   });
 
-  testWidgets('add a place, "near a place I know": the known place and how '
-      "far, nothing about the phone's position", (tester) async {
-    final calls = <Map<String, Object?>>[];
+  testWidgets("\"I'm not there\": nothing is added now; the name and where it "
+      'is are saved for review, and the rider is thanked', (tester) async {
+    final added = <String>[];
+    final sent = <Map<String, Object?>>[];
     final riders = RiderPlaces(
       addPlaceOnServer: (city, label, where) async {
-        calls.add({'label': label, ...placeWhereParams(where)});
-        return Landmark(id: 'landmark-new', name: label);
+        added.add(label);
+        return Landmark(id: 'x', name: label);
       },
     );
-    await missingPlaceApp(tester, riders: riders);
-    await openAddPlace(tester, 'Sino Mart');
+    final requests = PlaceRequests(send: (row) async => sent.add(row));
+    await missingPlaceApp(tester, riders: riders, requests: requests);
+    await openAddPlace(tester, 'Dispensaire Messasi');
 
-    await tester.tap(find.text("It's near a place I know"));
-    await tester.pumpAndSettle();
-    await tester.enterText(inSheet(find.byType(TextField)).last, 'messassi');
-    await tester.pumpAndSettle();
+    // Nothing to send until they say whether they are there.
     expect(tester.widget<KButton>(addButton()).onPressed, isNull);
-
-    await tester.tap(inSheet(find.text('Carrefour Messassi')));
+    await tester.tap(find.text("I'm not there"));
     await tester.pumpAndSettle();
-    expect(find.text('How far is it from there?'), findsOneWidget);
-    expect(tester.widget<KButton>(addButton()).onPressed, isNull); // not yet
-
-    await tester.tap(find.text('About 200 m'));
+    expect(find.text('Send'), findsOneWidget); // the button says Send now
+    await tester.enterText(
+      find.byKey(const ValueKey('newPlaceNote')),
+      'Behind the Messassi market',
+    );
     await tester.pumpAndSettle();
     await tester.tap(addButton());
     await tester.pumpAndSettle();
 
-    expect(calls, [
+    expect(added, isEmpty); // not added to Kombien
+    expect(sent, [
       {
-        'label': 'Sino Mart',
-        'p_method': 'near',
-        'p_anchor_id': 'messassi',
-        'p_anchor_m': 200,
+        'name': 'Dispensaire Messasi',
+        'note': 'Behind the Messassi market',
+        'city': 'Yaoundé',
+        'locale': 'en',
       },
     ]);
+    expect(find.text("We'll look into it"), findsOneWidget);
+    expect(find.text('Tell us about this place'), findsNothing);
+    await tester.pumpAndSettle(const Duration(seconds: 5));
   });
 
-  testWidgets('add a place, "I\'m not sure where": the name alone', (
+  testWidgets('"I\'m not there" offline: kept on the phone and sent later', (
     tester,
   ) async {
-    final calls = <Map<String, Object?>>[];
-    final riders = RiderPlaces(
-      addPlaceOnServer: (city, label, where) async {
-        calls.add({'label': label, ...placeWhereParams(where)});
-        return Landmark(id: 'landmark-new', name: label);
+    var online = false;
+    final sent = <Map<String, Object?>>[];
+    final requests = PlaceRequests(
+      send: (row) async {
+        if (!online) throw StateError('offline');
+        sent.add(row);
       },
     );
-    await missingPlaceApp(tester, riders: riders);
-    await openAddPlace(tester, 'Cinemat');
-
-    await tester.tap(find.text("I'm not sure where"));
+    await missingPlaceApp(tester, requests: requests);
+    await openAddPlace(tester, 'Dispensaire Messasi');
+    await tester.tap(find.text("I'm not there"));
     await tester.pumpAndSettle();
-    expect(
-      find.text(
-        "Other riders will find it by its name. It won't show up by distance.",
-      ),
-      findsOneWidget,
-    );
     await tester.tap(addButton());
     await tester.pumpAndSettle();
 
-    expect(calls, [
-      {'label': 'Cinemat', 'p_method': 'none'},
-    ]);
-    expect(find.widgetWithText(TextField, 'Cinemat'), findsOneWidget);
+    expect(find.text("We'll look into it"), findsOneWidget); // thanked anyway
+    expect(sent, isEmpty);
+    expect(await requests.waiting(), 1);
+
+    online = true;
+    await requests.sendWaiting();
+    expect(sent.single['name'], 'Dispensaire Messasi');
+    expect(await requests.waiting(), 0);
+    await tester.pumpAndSettle(const Duration(seconds: 5));
   });
 
   testWidgets('add a place: when the server refuses, the rider is told and '
@@ -448,10 +449,14 @@ void main() {
     final riders = RiderPlaces(
       addPlaceOnServer: (_, _, _) async => throw StateError('refused'),
     );
-    await missingPlaceApp(tester, riders: riders);
+    await missingPlaceApp(
+      tester,
+      riders: riders,
+      location: phoneAt(const PositionFix(3.8871, 11.5342, 28.2)),
+    );
     await openAddPlace(tester, 'Cinemat');
 
-    await tester.tap(find.text("I'm not sure where"));
+    await tester.tap(find.text("I'm here now"));
     await tester.pumpAndSettle();
     await tester.tap(addButton());
     await tester.pumpAndSettle();
@@ -460,7 +465,7 @@ void main() {
       find.text("Couldn't add that place. Check your connection and try again"),
       findsOneWidget,
     );
-    expect(find.text('Add this place'), findsOneWidget); // can try again
+    expect(find.text('Tell us about it'), findsOneWidget); // can try again
   });
 
   // ------------------------------------------------ a place Google knows

@@ -5,49 +5,9 @@ import 'package:kombien/app/app_state.dart';
 import 'package:kombien/data/landmark_repository.dart';
 import 'package:kombien/data/report_repository.dart';
 import 'package:kombien/main.dart';
-import 'package:kombien/services/push.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'support/fakes.dart';
-
-/// A browser and server for notifications, recording what was asked.
-class FakePush implements PushClient {
-  FakePush({this.supported = true, this.permission = 'default'});
-  @override
-  bool supported;
-  @override
-  String permission;
-
-  /// What the browser answers when asked.
-  bool allow = true;
-  final calls = <String>[];
-
-  @override
-  Future<bool> enable(String locale) async {
-    calls.add('enable $locale');
-    permission = allow ? 'granted' : 'denied';
-    return allow;
-  }
-
-  @override
-  Future<void> disable() async => calls.add('disable');
-
-  @override
-  Future<void> setLocale(String locale) async => calls.add('locale $locale');
-
-  @override
-  Future<void> routeReported(String fromId, String toId) async =>
-      calls.add('reported $fromId→$toId');
-
-  @override
-  Future<void> flush() async => calls.add('flush');
-
-  @override
-  Future<String> sendTest() async {
-    calls.add('test');
-    return 'sent';
-  }
-}
 
 /// Reports that always reach the server.
 class SentReports implements ReportRepository {
@@ -216,7 +176,7 @@ void main() {
       await tester.pumpWidget(KombienApp(showSplash: false, state: state));
       await tester.pumpAndSettle();
       expect(
-        find.text('Fares unlocked, updates, morning reminders'),
+        find.text('Fares unlocked, places added, updates, morning reminders'),
         supported ? findsOneWidget : findsNothing,
       );
     });

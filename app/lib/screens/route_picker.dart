@@ -12,7 +12,6 @@ import '../components/k_layout.dart';
 import '../components/k_places.dart';
 import '../data/google_places.dart';
 import '../data/landmark_repository.dart';
-import '../data/problem_repository.dart';
 import '../design/k_motion.dart';
 import '../design/k_text.dart';
 import '../design/k_tokens.dart';
@@ -42,6 +41,7 @@ class KRoutePicker extends StatefulWidget {
     this.header,
     this.below,
     this.bottom,
+    this.toasts,
   });
 
   final void Function(Landmark? from, Landmark? to) onRoute;
@@ -58,6 +58,11 @@ class KRoutePicker extends StatefulWidget {
 
   /// Pinned at the very bottom, under the saved places (feedback).
   final Widget? bottom;
+
+  /// Where the page's toasts show. Floats above the page (bottom right), so a
+  /// toast never takes room from the content or the pinned bottom. Defaults
+  /// to the picker's own.
+  final GlobalKey<KToastHostState>? toasts;
 
   @override
   State<KRoutePicker> createState() => _KRoutePickerState();
@@ -101,26 +106,8 @@ class _KRoutePickerState extends State<KRoutePicker> {
 
   /// Both ends are the same place: no route to look up or report.
   bool _sameRoute = false;
-  final _toasts = GlobalKey<KToastHostState>();
-
-  /// "Can't find it?": the problem sheet, on "A place is missing", with what
-  /// was typed. Thanks the rider after.
-  Future<void> _reportMissing(String typed) async {
-    final app = KAppScope.of(context);
-    final t = context.l10n;
-    final report = await showProblemSheet(
-      context,
-      kind: ProblemKind.placeMissing,
-      note: typed.trim(),
-    );
-    if (report == null || !mounted) return;
-    unawaited(app.reportProblem(report));
-    _toasts.currentState?.show(
-      t.problemThanksLabel,
-      t.problemThanksTitle,
-      t.problemThanksBody,
-    );
-  }
+  final _ownToasts = GlobalKey<KToastHostState>();
+  GlobalKey<KToastHostState> get _toasts => widget.toasts ?? _ownToasts;
 
   /// The field a saved place fills: the one last in use.
   bool _fillStart = false;
@@ -321,15 +308,35 @@ class _KRoutePickerState extends State<KRoutePicker> {
     }
   }
 
-  /// The rider adds the place themselves: what it is called and how they know
-  /// where it is. Saved as a place they (and everyone after them) can report
-  /// against, or the one Kombien already has with that name.
-  Future<void> _addYourself() async {
+  /// "Tell us about it": the rider names a place Kombien does not have and
+  /// says whether they are there now.
+  ///
+  /// - There now (location on): added at once where they stand, and picked for
+  ///   the route (or the place Kombien already has under that name).
+  /// - Not there: saved for review, with what they said about where it is; the
+  ///   rider is thanked and told when it is added (if notifications are on).
+  Future<void> _tellUs({String? typed}) async {
     final start = _googleStart && _google.isNotEmpty
         ? _googleStart
         : _lastStart;
-    final place = await showNewPlaceSheet(context, typed: _lastQuery);
+    final place = await showNewPlaceSheet(context, typed: typed ?? _lastQuery);
     if (place == null || !mounted) return;
+    if (place.where.forReview) {
+      final app = KAppScope.of(context);
+      final t = context.l10n;
+      final saved = await app.suggestPlace(place.label, note: place.where.note);
+      if (!mounted) return;
+      if (saved) {
+        _toasts.currentState?.show(
+          t.suggestThanksLabel,
+          t.suggestThanksTitle,
+          t.suggestThanksBody,
+        );
+      } else {
+        setState(() => _addFailed = true);
+      }
+      return;
+    }
     try {
       final landmark = await KAppScope.of(context).addRiderPlace(place);
       if (!mounted) return;
@@ -403,7 +410,7 @@ class _KRoutePickerState extends State<KRoutePicker> {
             button: true,
             child: KSkip(
               context.l10n.placeMissingLink,
-              onTap: () => _reportMissing(start ? _from.text : _to.text),
+              onTap: () => _tellUs(typed: start ? _from.text : _to.text),
             ),
           ),
         );
@@ -483,17 +490,7 @@ class _KRoutePickerState extends State<KRoutePicker> {
           padding: const EdgeInsets.only(top: 10, left: 4),
           child: Semantics(
             button: true,
-            child: KSkip(t.addYourselfLink, onTap: _addYourself),
-          ),
-        ),
-        Padding(
-          padding: const EdgeInsets.only(top: 8, left: 4),
-          child: Semantics(
-            button: true,
-            child: KSkip(
-              t.placeMissingLink,
-              onTap: () => _reportMissing(_lastQuery),
-            ),
+            child: KSkip(t.addYourselfLink, onTap: _tellUs),
           ),
         ),
       ],
@@ -536,10 +533,8 @@ class _KRoutePickerState extends State<KRoutePicker> {
                 right: 'assets/illustrations/magnifying-glass.webp',
               ),
               title: t.noMatchTitle,
-              action: t.addPlaceYourself,
-              onAction: _addYourself,
-              skip: t.placeMissingAction,
-              onSkip: () => _reportMissing(_lastQuery),
+              action: t.placeMissingAction,
+              onAction: _tellUs,
             ),
             if (_addFailed) _addFailedNote(),
           ],

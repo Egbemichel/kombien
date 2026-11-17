@@ -12,8 +12,10 @@ The CSV has a header row and these columns (extra ones are ignored):
                clinic, hotel, bank, church, mosque, fuel, restaurant, other
                (or an OpenStreetMap tag like shop=mall); default: other
     aliases    other names, separated by ;
-    query      the search this answers (from missing_places.py): its row in
-               the missing list is cleared when the migration is applied
+    query      the search(es) this answers (from missing_places.py; several
+               spellings separated by ;): their rows in the missing list are
+               cleared when the migration is applied, and the riders who asked
+               are told the place is on Kombien (see place_requests)
 
 It checks every place against what the live database already has (same name,
 one name inside the other close by, a very similar name close by) and against
@@ -107,8 +109,9 @@ def build(rows: list[dict], existing: list[dict]):
         kind_raw = (r.get("kind") or "").strip().lower()
         kind = KINDS.get(kind_raw, kind_raw if "=" in kind_raw else "place=locality")
         aliases = [a.strip() for a in (r.get("aliases") or "").split(";") if a.strip()][:4]
+        queries = [q.strip().lower() for q in (r.get("query") or "").split(";") if q.strip()]
         keep.append({"city": city, "name": name, "aliases": aliases, "at": at,
-                     "kind": kind, "query": (r.get("query") or "").strip().lower()})
+                     "kind": kind, "queries": queries})
     return keep, skipped
 
 
@@ -136,11 +139,26 @@ def migration(places: list[dict], source_name: str) -> str:
                 ") as v(name, aliases, lat, lng, kind)",
                 f"where c.name = {pi.sql_text(city)}",
                 "on conflict (city_id, name) do nothing;", ""]
-    queries = sorted({p["query"] for p in places if p["query"]})
+    answered = [(q, p["city"], p["name"]) for p in places for q in p["queries"]]
+    queries = sorted({q for q, _, _ in answered})
     if queries:
         out += ["-- These searches are answered now: clear them from the missing list.",
                 "delete from public.search_misses where query in ("
-                + ", ".join(pi.sql_text(q) for q in queries) + ");", ""]
+                + ", ".join(pi.sql_text(q) for q in queries) + ");", "",
+                "-- Riders who asked for them (searched with notifications on, or used",
+                "-- 'Tell us about it') are linked to the new place; the notify function",
+                "-- tells them it is on Kombien at its next run.",
+                "update public.place_requests r",
+                "   set status = 'added', landmark_id = l.id",
+                "  from (values",
+                ",\n".join(f"  ({pi.sql_text(q)}, {pi.sql_text(c)}, {pi.sql_text(n)})"
+                           for q, c, n in answered),
+                "  ) as v(query, city, name)",
+                "  join public.cities c on c.name = v.city",
+                "  join public.landmarks l on l.city_id = c.id and l.name = v.name",
+                " where r.status = 'open'",
+                "   and lower(r.name) = v.query",
+                "   and (r.city = '' or lower(r.city) = lower(v.city));", ""]
     return "\n".join(out)
 
 

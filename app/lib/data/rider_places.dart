@@ -33,6 +33,17 @@ sealed class PlaceWhere {
 
   /// "I'm not sure where": found by its name only.
   const factory PlaceWhere.unknown() = _Unknown;
+
+  /// "I'm not there": nothing is added now. The rider tells Kombien about the
+  /// place (and, if they like, where it is) and it is saved for review: the
+  /// maintainers look it up and add it, and the rider is told when it is.
+  const factory PlaceWhere.review(String note) = _Review;
+
+  /// Saved for review rather than added at once.
+  bool get forReview => false;
+
+  /// What the rider said about where it is (only for review).
+  String? get note => null;
 }
 
 class _Gps extends PlaceWhere {
@@ -49,6 +60,15 @@ class _Near extends PlaceWhere {
 
 class _Unknown extends PlaceWhere {
   const _Unknown();
+}
+
+class _Review extends PlaceWhere {
+  const _Review(this.said);
+  final String said;
+  @override
+  bool get forReview => true;
+  @override
+  String? get note => said;
 }
 
 /// A place the rider is adding: what they call it, and where it is.
@@ -72,6 +92,8 @@ Map<String, Object?> placeWhereParams(PlaceWhere where) => switch (where) {
     'p_anchor_m': metres,
   },
   _Unknown() => {'p_method': 'none'},
+  // Never added at once: it goes to review (PlaceRequests.suggest).
+  _Review() => throw StateError('a place for review is not added directly'),
 };
 
 /// Places riders add through Google, and how they are found again.

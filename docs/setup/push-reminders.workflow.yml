@@ -1,0 +1,54 @@
+# READY TO PASTE: the new contents of .github/workflows/push-reminders.yml
+# (this copy lives in docs/ because the tool that prepared it may not push
+# workflow files). It adds a second run at 07:00 Cameroon time that sends only
+# what was held back overnight, the moment quiet hours end. Everything else is
+# unchanged. To apply: open .github/workflows/push-reminders.yml on GitHub,
+# choose "Edit", replace its contents with this file (without these four
+# comment lines), commit to main.
+
+# The morning notifications for riders who turned notifications on. Two runs a
+# day, both Cameroon time:
+#
+#   07:00 (06:00 UTC)  "flush": only what was held back overnight (an update
+#                      announcement, an unlocked-fares notice), the moment quiet
+#                      hours (21:00-07:00) end.
+#   08:30 (07:30 UTC)  "reminders": the same first, then places that were added
+#                      for riders who asked, then the morning reminder. The
+#                      function sends one reminder to each phone only every 3
+#                      days, never in quiet hours, and never a second
+#                      notification on the same day.
+#
+# Needs repository secrets: SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY (already
+# used by the deploy) and NOTIFY_SECRET (the same value as the function's
+# NOTIFY_SECRET secret). See docs/setup/push-reminders.md.
+name: Push reminders
+
+on:
+  schedule:
+    - cron: "0 6 * * *"
+    - cron: "30 7 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  remind:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Ask the function to send what is due
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          KEY: ${{ secrets.SUPABASE_PUBLISHABLE_KEY }}
+          NOTIFY_SECRET: ${{ secrets.NOTIFY_SECRET }}
+          # The 07:00 run only flushes; every other run (08:30, or by hand)
+          # does the whole morning job.
+          JOB: ${{ github.event.schedule == '0 6 * * *' && 'flush' || 'reminders' }}
+        run: |
+          test -n "$NOTIFY_SECRET" || { echo "NOTIFY_SECRET is not set"; exit 1; }
+          curl -sS --fail-with-body --retry 3 -X POST \
+            "$SUPABASE_URL/functions/v1/notify-unlocked" \
+            -H "apikey: $KEY" -H "Authorization: Bearer $KEY" \
+            -H "x-notify-secret: $NOTIFY_SECRET" \
+            -H "Content-Type: application/json" -d "{\"job\":\"$JOB\"}"
